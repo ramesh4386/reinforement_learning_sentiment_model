@@ -1,0 +1,2 @@
+# reinforement_learning_sentiment_model
+sentiment model using reinforcement learning
