@@ -3,6 +3,8 @@ import string
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.cluster import AgglomerativeClustering
+import matplotlib.pyplot as plt
+from scipy.cluster.hierarchy import dendrogram
 
 nltk.download('stopwords')
 nltk.download('punkt')
@@ -45,7 +47,7 @@ def cluster_text_data(text_data, similarity_threshold):
             text_groups[label] = []
         text_groups[label].append(text_data[i])
     
-    return text_groups
+    return text_groups, labels
 
 # Example usage:
 text_data = [
@@ -56,7 +58,7 @@ text_data = [
 ]
 
 similarity_threshold = 0.7
-text_groups = cluster_text_data(text_data, similarity_threshold)
+text_groups, labels = cluster_text_data(text_data, similarity_threshold)
 
 if len(text_groups) > 0:
     print("Text groups:")
@@ -67,3 +69,11 @@ if len(text_groups) > 0:
         print()
 else:
     print("No similar text groups found.")
+
+# Hierarchical clustering visualization
+plt.figure(figsize=(10, 7))
+dendrogram(dendrogram(linkage(similarity_matrix, method='average'), labels=labels, color_threshold=similarity_threshold))
+plt.title("Hierarchical Clustering Dendrogram")
+plt.xlabel("Text Index")
+plt.ylabel("Distance")
+plt.show()
