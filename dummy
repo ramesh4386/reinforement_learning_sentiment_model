@@ -1,0 +1,62 @@
+import nltk
+import string
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
+
+nltk.download('stopwords')
+nltk.download('punkt')
+
+def clean_text(text):
+    # Tokenize the text into individual words
+    tokens = nltk.word_tokenize(text.lower())
+    
+    # Remove punctuation
+    tokens = [token for token in tokens if token not in string.punctuation]
+    
+    # Remove stopwords
+    stopwords = nltk.corpus.stopwords.words('english')
+    tokens = [token for token in tokens if token not in stopwords]
+    
+    # Reconstruct the text from the remaining tokens
+    cleaned_text = ' '.join(tokens)
+    
+    return cleaned_text
+
+def cluster_text_data(text_data, similarity_threshold):
+    # Clean the text data
+    cleaned_data = [clean_text(text) for text in text_data]
+    
+    # Vectorize the cleaned data using TF-IDF
+    vectorizer = TfidfVectorizer()
+    tfidf_matrix = vectorizer.fit_transform(cleaned_data)
+    
+    # Compute cosine similarity
+    similarity_matrix = cosine_similarity(tfidf_matrix)
+    
+    # Find similar text pairs based on the similarity threshold
+    similar_pairs = []
+    num_texts = len(text_data)
+    for i in range(num_texts):
+        for j in range(i + 1, num_texts):
+            if similarity_matrix[i, j] > similarity_threshold:
+                similar_pairs.append((text_data[i], text_data[j]))
+    
+    return similar_pairs
+
+# Example usage:
+text_data = [
+    "This is the first document.",
+    "This document is the second document.",
+    "And this is the third one.",
+    "Is this the first document?",
+]
+
+similarity_threshold = 0.7
+similar_pairs = cluster_text_data(text_data, similarity_threshold)
+
+if len(similar_pairs) > 0:
+    print("Similar text pairs:")
+    for pair in similar_pairs:
+        print(pair)
+else:
+    print("No similar text pairs found.")
