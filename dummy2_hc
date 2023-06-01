@@ -1,0 +1,69 @@
+import nltk
+import string
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
+from sklearn.cluster import AgglomerativeClustering
+
+nltk.download('stopwords')
+nltk.download('punkt')
+
+def clean_text(text):
+    # Tokenize the text into individual words
+    tokens = nltk.word_tokenize(text.lower())
+    
+    # Remove punctuation
+    tokens = [token for token in tokens if token not in string.punctuation]
+    
+    # Remove stopwords
+    stopwords = nltk.corpus.stopwords.words('english')
+    tokens = [token for token in tokens if token not in stopwords]
+    
+    # Reconstruct the text from the remaining tokens
+    cleaned_text = ' '.join(tokens)
+    
+    return cleaned_text
+
+def cluster_text_data(text_data, similarity_threshold):
+    # Clean the text data
+    cleaned_data = [clean_text(text) for text in text_data]
+    
+    # Vectorize the cleaned data using TF-IDF
+    vectorizer = TfidfVectorizer()
+    tfidf_matrix = vectorizer.fit_transform(cleaned_data)
+    
+    # Compute cosine similarity
+    similarity_matrix = cosine_similarity(tfidf_matrix)
+    
+    # Perform hierarchical clustering
+    clustering = AgglomerativeClustering(n_clusters=None, distance_threshold=similarity_threshold, linkage='average')
+    labels = clustering.fit_predict(similarity_matrix)
+    
+    # Group texts based on the clustering labels
+    text_groups = {}
+    for i, label in enumerate(labels):
+        if label not in text_groups:
+            text_groups[label] = []
+        text_groups[label].append(text_data[i])
+    
+    return text_groups
+
+# Example usage:
+text_data = [
+    "This is the first document.",
+    "This document is the second document.",
+    "And this is the third one.",
+    "Is this the first document?",
+]
+
+similarity_threshold = 0.7
+text_groups = cluster_text_data(text_data, similarity_threshold)
+
+if len(text_groups) > 0:
+    print("Text groups:")
+    for group_id, texts in text_groups.items():
+        print(f"Group {group_id + 1}:")
+        for text in texts:
+            print(f"- {text}")
+        print()
+else:
+    print("No similar text groups found.")
