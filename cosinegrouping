@@ -31,3 +31,6 @@ for topic in topics:
   parent_topic.append(topic)
   kids_topics.append(correspond_topics)
   kids_simi_score.append(similarity_scores)
+
+cosine_similarity_groupping=dict(zip(parent_topic, kids_topics))
+print(cosine_similarity_groupping)
