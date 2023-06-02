@@ -34,3 +34,48 @@ for topic in topics:
 
 cosine_similarity_groupping=dict(zip(parent_topic, kids_topics))
 print(cosine_similarity_groupping)
+####################################TOP5##########################
+import pandas as pd
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
+
+def find_similar_texts(text_data):
+    vectorizer = TfidfVectorizer()
+    X = vectorizer.fit_transform(text_data)
+    similarity_matrix = cosine_similarity(X)
+    
+    results = []
+    for i in range(len(text_data)):
+        similarities = similarity_matrix[i]
+        indices = similarities.argsort()[-6:-1]  # Get the indices of top 5 similar texts (excluding itself)
+        scores = similarities[indices]
+        similar_texts = [text_data[j] for j in indices]
+        
+        result = {
+            'Text': text_data[i],
+            'Similar Text 1': similar_texts[0],
+            'Similar Text 2': similar_texts[1],
+            'Similar Text 3': similar_texts[2],
+            'Similar Text 4': similar_texts[3],
+            'Similar Text 5': similar_texts[4],
+            'Score 1': scores[0],
+            'Score 2': scores[1],
+            'Score 3': scores[2],
+            'Score 4': scores[3],
+            'Score 5': scores[4]
+        }
+        results.append(result)
+    
+    df = pd.DataFrame(results)
+    return df
+
+# Example usage
+text_data = [
+    "This is the first document.",
+    "This document is the second document.",
+    "And this is the third one.",
+    "Is this the first document?",
+]
+
+similar_texts_df = find_similar_texts(text_data)
+print(similar_texts_df)
