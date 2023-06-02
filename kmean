@@ -30,3 +30,33 @@ text_data = [
 
 # Visualize the elbow curve with k ranging from 1 to 6
 visualize_elbow_curve(text_data, max_k=6)
+def cluster_texts(text_data, k):
+    vectorizer = TfidfVectorizer()
+    X = vectorizer.fit_transform(text_data)
+    
+    kmeans = KMeans(n_clusters=k, random_state=42)
+    kmeans.fit(X)
+    clusters = kmeans.predict(X)
+    
+    text_group_df = pd.DataFrame({'Text': text_data, 'Group': clusters})
+    return text_group_df
+
+# Example usage
+text_data = [
+    "This is the first document.",
+    "This document is the second document.",
+    "And this is the third one.",
+    "Is this the first document?",
+]
+
+k = 2
+
+# Cluster the text data and store the results in a dataframe
+text_group_df = cluster_texts(text_data, k)
+print(text_group_df)
+
+
+
+
+
+
