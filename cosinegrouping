@@ -1,0 +1,33 @@
+#cosine similarity (innner grouping)
+# sentance transfomer is used to transform document to vector. 
+from sentence_transformers import SentenceTransformer
+from sklearn.metrics.pairwise import cosine_similarity
+model = SentenceTransformer('paraphrase-MiniLM-L6-v2')
+
+def consine_similarity_score(text1, text2):
+  vec_1 = model.encode([text1])
+  vec_2 = model.encode([text2])
+  similarity_score=cosine_similarity(vec_1, vec_2)
+  return similarity_score
+  
+  
+ #cosine similarity grouping (outer grouping)
+
+topic_list=topics_after_similarity_filter
+topics =topic_list
+parent_topic=[]
+kids_topics=[]
+kids_simi_score=[]
+for topic in topics:
+  topic_index = topics.index(topic)
+  rest_of_the_topics = topics[topic_index+1:]
+  similarity_scores=[]
+  correspond_topics =[]
+  for topic1 in rest_of_the_topics:
+    similarity_score_value=consine_similarity_score(topic, topic1)
+    if similarity_score_value> 0.55:
+      similarity_scores.append(similarity_score_value)
+      correspond_topics.append(topic1)
+  parent_topic.append(topic)
+  kids_topics.append(correspond_topics)
+  kids_simi_score.append(similarity_scores)
