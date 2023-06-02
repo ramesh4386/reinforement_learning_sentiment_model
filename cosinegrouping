@@ -47,7 +47,7 @@ def find_similar_texts(text_data):
     results = []
     for i in range(len(text_data)):
         similarities = similarity_matrix[i]
-        indices = similarities.argsort()[-6:-1]  # Get the indices of top 5 similar texts (excluding itself)
+        indices = similarities.argsort()[::-1][:5]  # Sort indices in descending order
         scores = similarities[indices]
         similar_texts = [text_data[j] for j in indices]
         
@@ -79,3 +79,4 @@ text_data = [
 
 similar_texts_df = find_similar_texts(text_data)
 print(similar_texts_df)
+
