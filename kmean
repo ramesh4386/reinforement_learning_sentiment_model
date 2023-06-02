@@ -1,0 +1,32 @@
+import matplotlib.pyplot as plt
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.cluster import KMeans
+from sklearn.metrics import pairwise_distances_argmin_min
+
+def visualize_elbow_curve(data, max_k):
+    vectorizer = TfidfVectorizer()
+    X = vectorizer.fit_transform(data)
+    
+    distortions = []
+    for k in range(1, max_k+1):
+        kmeans = KMeans(n_clusters=k, random_state=42)
+        kmeans.fit(X)
+        distortions.append(kmeans.inertia_)
+    
+    # Plot the elbow curve
+    plt.plot(range(1, max_k+1), distortions, marker='o')
+    plt.xlabel('Number of Clusters (k)')
+    plt.ylabel('Distortion')
+    plt.title('Elbow Curve')
+    plt.show()
+
+# Example usage
+text_data = [
+    "This is the first document.",
+    "This document is the second document.",
+    "And this is the third one.",
+    "Is this the first document?",
+]
+
+# Visualize the elbow curve with k ranging from 1 to 6
+visualize_elbow_curve(text_data, max_k=6)
