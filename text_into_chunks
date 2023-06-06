@@ -1,0 +1,25 @@
+def split_text_into_chunks(text, chunk_size):
+    chunks = []
+    text_length = len(text)
+    start = 0
+    end = chunk_size
+
+    while end <= text_length:
+        chunk = text[start:end]
+        chunks.append(chunk)
+        start = end
+        end += chunk_size
+
+    if start < text_length:
+        last_chunk = text[start:]
+        chunks.append(last_chunk)
+
+    return chunks
+
+
+
+
+text = "This is a sample text to demonstrate chunking."
+chunk_size = 10
+chunks = split_text_into_chunks(text, chunk_size)
+print(chunks)
