@@ -1,0 +1,17 @@
+import bertopic
+
+# Load the dataset
+docs = bertopic.load_dataset("20newsgroups")
+
+# Create a BERTopic model
+model = bertopic.TopicModel(n_components=10)
+
+# Fit the model to the data
+model.fit(docs)
+
+# Generate topics
+topics = model.get_topics()
+
+# Print the topics
+for topic in topics:
+    print(topic)
