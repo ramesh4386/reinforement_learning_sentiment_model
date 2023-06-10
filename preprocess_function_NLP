@@ -10,3 +10,15 @@ def preprocess_text(text):
     return text
 
 other_stopwords = ['hi', 'p', 'q' 's', 'hello', 'text', 'ee', 'f',  'ce', 'c', 'b', 'cc', 'br', 'regflag', 'timestamp',  'thank you',  'would', 'able', 'could', 'us', 'Th', 'The', 'thanks', 'relias']
+#Bert topic code:
+
+#berttopic
+from bertopic import BERTopic
+from sklearn.feature_extraction.text import CountVectorizer
+topic_model = BERTopic(nr_topics=100)
+topics, probs = topic_model.fit_transform(docs)
+lda_topic_df=pd.DataFrame(topic_model.get_topic_info())
+lda_topic_df['first_two_major_key_words']=lda_topic_df['Name'].apply(lambda x: x.split('_')[1:3])
+lda_topic_df['potential_topic']=lda_topic_df['first_two_major_key_words'].apply(lambda x: x[0] +'_'+x[1])
+lda_topic_df['potential_topic2']=lda_topic_df['first_two_major_key_words'].apply(lambda x: x[0] +' '+x[1])
+lda_topic_df.head()
