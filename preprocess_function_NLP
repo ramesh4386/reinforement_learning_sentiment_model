@@ -1,0 +1,12 @@
+def preprocess_text(text):
+    text = re.sub('((www\.[^\s]+)|(https?://[^\s]+))', ' ', text)
+    text = re.sub('[^A-Za-z]+', ' ', text)
+    text = text.lower()
+    text = word_tokenize(text)
+    text =[word for word in text if word not in stop_words]
+#     text =' '. join([w for w in text])
+    text =' '. join([WordNetLemmatizer().lemmatize(w) for w in text])
+#     text = PorterStemmer().stem_sentence(text)
+    return text
+
+other_stopwords = ['hi', 'p', 'q' 's', 'hello', 'text', 'ee', 'f',  'ce', 'c', 'b', 'cc', 'br', 'regflag', 'timestamp',  'thank you',  'would', 'able', 'could', 'us', 'Th', 'The', 'thanks', 'relias']
