@@ -1,0 +1,35 @@
+import gensim
+from gensim import corpora
+from gensim.models import LdaModel
+from gensim.utils import simple_preprocess
+
+# Step 1: Prepare the text data
+documents = [
+    "The sky is blue",
+    "The sun is bright",
+    "The sky is cloudy",
+    "I love to watch the stars",
+    "I enjoy going to the beach"
+]
+
+# Step 2: Preprocess the text data
+processed_docs = [simple_preprocess(doc) for doc in documents]
+
+# Step 3: Create a dictionary from the preprocessed documents
+dictionary = corpora.Dictionary(processed_docs)
+
+# Step 4: Convert the preprocessed documents into a bag-of-words corpus
+bow_corpus = [dictionary.doc2bow(doc) for doc in processed_docs]
+
+# Step 5: Train the LDA model
+lda_model = LdaModel(bow_corpus, num_topics=2, id2word=dictionary, passes=10)
+
+# Step 6: Extract topics from a document
+doc = "The sky is blue"
+doc_preprocessed = simple_preprocess(doc)
+doc_bow = dictionary.doc2bow(doc_preprocessed)
+topics = lda_model.get_document_topics(doc_bow)
+
+# Step 7: Print the topics and their probabilities
+for topic in topics:
+    print(f"Topic {topic[0]}: {topic[1]}")
