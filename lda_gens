@@ -24,12 +24,11 @@ bow_corpus = [dictionary.doc2bow(doc) for doc in processed_docs]
 # Step 5: Train the LDA model
 lda_model = LdaModel(bow_corpus, num_topics=2, id2word=dictionary, passes=10)
 
-# Step 6: Extract topics from a document
-doc = "The sky is blue"
-doc_preprocessed = simple_preprocess(doc)
-doc_bow = dictionary.doc2bow(doc_preprocessed)
-topics = lda_model.get_document_topics(doc_bow)
+# Step 6: Print the top 5 keywords for each topic
+topics = lda_model.show_topics(num_topics=2, num_words=5)
 
-# Step 7: Print the topics and their probabilities
 for topic in topics:
-    print(f"Topic {topic[0]}: {topic[1]}")
+    topic_id, words = topic
+    keyword_list = [word for word, _ in words]
+    keyword_list = [str(word) for word in keyword_list]  # Convert words to strings
+    print(f"Topic {topic_id}: {', '.join(keyword_list)}")
