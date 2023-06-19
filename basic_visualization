@@ -1,0 +1,76 @@
+import random
+from datetime import datetime, timedelta
+
+# Generate random dates within a specific range
+start_date = datetime(2022, 1, 1)
+end_date = datetime(2022, 12, 31)
+date_format = "%Y-%m-%d"
+
+text_data = []
+
+for _ in range(100):
+    random_date = start_date + timedelta(days=random.randint(0, (end_date - start_date).days))
+    formatted_date = random_date.strftime(date_format)
+    text_data.append(formatted_date + " " + " ".join(["word"] * random.randint(1, 10)))
+
+# Print the generated text data
+#for data in text_data:
+    #print(data)
+
+import plotly.graph_objects as go
+import pandas as pd
+import plotly.express as px
+from plotly.subplots import make_subplots
+from collections import Counter
+import nltk
+from nltk import ngrams
+from wordcloud import WordCloud
+import matplotlib.pyplot as plt
+
+# Extract unigrams
+unigrams = [word for data in text_data for word in data.split()[1:]]
+
+# Extract bigrams
+bigrams = list(ngrams([word for data in text_data for word in data.split()[1:]], 2))
+
+# Count unigram occurrences
+unigram_counts = Counter(unigrams)
+top_20_unigrams = unigram_counts.most_common(20)
+
+# Count bigram occurrences
+bigram_counts = Counter(bigrams)
+top_20_bigrams = bigram_counts.most_common(20)
+
+# Create word cloud
+wordcloud = WordCloud(width=800, height=400, background_color="white").generate(" ".join(unigrams))
+
+# Create trend of bigrams
+df_bigrams = pd.DataFrame(top_20_bigrams, columns=["Bigram", "Count"])
+df_bigrams["Bigram"] = df_bigrams["Bigram"].apply(lambda x: " ".join(x))
+df_bigrams = df_bigrams.sort_values("Count", ascending=True)
+
+# Create subplots
+fig = make_subplots(rows=2, cols=2, subplot_titles=("Top 20 Unigrams", "Top 20 Bigrams", "Word Cloud", "Trend of Bigrams"))
+
+# Plot top 20 unigrams
+fig.add_trace(go.Bar(x=[count for _, count in top_20_unigrams], y=[word for word, _ in top_20_unigrams],
+                     orientation='h'), row=1, col=1)
+
+# Plot top 20 bigrams
+fig.add_trace(go.Bar(x=[count for _, count in top_20_bigrams], y=[word for word, _ in top_20_bigrams],
+                     orientation='h'), row=1, col=2)
+
+# Plot word cloud
+fig.add_trace(go.Image(z=wordcloud.to_array()), row=2, col=1)
+
+# Plot trend of bigrams
+fig.add_trace(go.Scatter(x=df_bigrams["Count"], y=df_bigrams["Bigram"], mode='markers',
+                         marker=dict(color=df_bigrams["Count"], colorscale='Viridis', size=10),
+                         text=df_bigrams["Bigram"]), row=2, col=2)
+
+# Update layout
+fig.update_layout(height=800, showlegend=False)
+
+# Show the figure
+fig.show()
+
