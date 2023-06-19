@@ -1,5 +1,14 @@
 import random
 from datetime import datetime, timedelta
+import plotly.graph_objects as go
+import pandas as pd
+import plotly.express as px
+from plotly.subplots import make_subplots
+from collections import Counter
+import nltk
+from nltk import ngrams
+from wordcloud import WordCloud
+import matplotlib.pyplot as plt
 
 # Generate random dates within a specific range
 start_date = datetime(2022, 1, 1)
@@ -16,16 +25,6 @@ for _ in range(100):
 # Print the generated text data
 #for data in text_data:
     #print(data)
-
-import plotly.graph_objects as go
-import pandas as pd
-import plotly.express as px
-from plotly.subplots import make_subplots
-from collections import Counter
-import nltk
-from nltk import ngrams
-from wordcloud import WordCloud
-import matplotlib.pyplot as plt
 
 # Extract unigrams
 unigrams = [word for data in text_data for word in data.split()[1:]]
@@ -73,4 +72,3 @@ fig.update_layout(height=800, showlegend=False)
 
 # Show the figure
 fig.show()
-
