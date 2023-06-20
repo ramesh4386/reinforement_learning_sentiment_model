@@ -18,46 +18,41 @@ unigrams = [word for word in df['Text']]
 bigrams = [gram for gram in ngrams(df['Text'], 2)]
 trigrams = [gram for gram in ngrams(df['Text'], 3)]
 
+# Create a 2x2 subplot grid
+fig, axes = plt.subplots(2, 2, figsize=(12, 10))
+
 # Plot top 20 unigrams
 unigram_counts = Counter(unigrams)
 top20_unigrams = unigram_counts.most_common(20)
 unigram_df = pd.DataFrame(top20_unigrams, columns=['Unigram', 'Count'])
-plt.figure(figsize=(10, 6))
-sns.barplot(x='Count', y='Unigram', data=unigram_df)
-plt.title('Top 20 Unigrams')
-plt.xlabel('Count')
-plt.ylabel('Unigram')
-plt.show()
+sns.barplot(x='Count', y='Unigram', data=unigram_df, ax=axes[0, 0])
+axes[0, 0].set_title('Top 20 Unigrams')
 
 # Plot top 20 bigrams
 bigram_counts = Counter(bigrams)
 top20_bigrams = bigram_counts.most_common(20)
 bigram_df = pd.DataFrame(top20_bigrams, columns=['Bigram', 'Count'])
-plt.figure(figsize=(10, 6))
-sns.barplot(x='Count', y='Bigram', data=bigram_df)
-plt.title('Top 20 Bigrams')
-plt.xlabel('Count')
-plt.ylabel('Bigram')
-plt.show()
+sns.barplot(x='Count', y='Bigram', data=bigram_df, ax=axes[0, 1])
+axes[0, 1].set_title('Top 20 Bigrams')
 
 # Plot top 20 trigrams
 trigram_counts = Counter(trigrams)
 top20_trigrams = trigram_counts.most_common(20)
 trigram_df = pd.DataFrame(top20_trigrams, columns=['Trigram', 'Count'])
-plt.figure(figsize=(10, 6))
-sns.barplot(x='Count', y='Trigram', data=trigram_df)
-plt.title('Top 20 Trigrams')
-plt.xlabel('Count')
-plt.ylabel('Trigram')
-plt.show()
+sns.barplot(x='Count', y='Trigram', data=trigram_df, ax=axes[1, 0])
+axes[1, 0].set_title('Top 20 Trigrams')
 
 # Generate word cloud
 text = ' '.join(df['Text'])
 wordcloud = WordCloud(width=800, height=400, background_color='white').generate(text)
 
 # Plot word cloud
-plt.figure(figsize=(10, 6))
-plt.imshow(wordcloud, interpolation='bilinear')
-plt.title('Word Cloud')
-plt.axis('off')
+axes[1, 1].imshow(wordcloud, interpolation='bilinear')
+axes[1, 1].set_title('Word Cloud')
+axes[1, 1].axis('off')
+
+# Adjust spacing between subplots
+plt.tight_layout()
+
+# Display the plot
 plt.show()
