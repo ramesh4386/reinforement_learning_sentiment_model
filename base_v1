@@ -1,53 +1,63 @@
-import random
-import string
+import numpy as np
+import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
+from wordcloud import WordCloud
+from nltk import ngrams
+from collections import Counter
 
-# Generate 100 text data
-text_data = []
-for i in range(100):
-  text = ""
-  for j in range(100):
-    char = random.choice(string.ascii_lowercase)
-    text += char
-  text_data.append(text)
+# Generate random text data
+np.random.seed(42)
+text_data = np.random.choice(['apple', 'banana', 'cherry', 'date', 'elderberry', 'fig', 'grape', 'honeydew', 'kiwi', 'lemon'], size=100)
 
-# Create a CountVectorizer object
-vectorizer = CountVectorizer()
+# Create a DataFrame with the text data
+df = pd.DataFrame(text_data, columns=['Text'])
 
-# Fit the CountVectorizer object to the text data
-vectorizer.fit(text_data)
+# Compute unigrams, bigrams, and trigrams
+unigrams = [word for word in df['Text']]
+bigrams = [gram for gram in ngrams(df['Text'], 2)]
+trigrams = [gram for gram in ngrams(df['Text'], 3)]
 
-# Get the top 20 unigrams
-unigrams = vectorizer.get_feature_names()[:20]
-
-# Get the top 20 bigrams
-bigrams = list(zip(vectorizer.get_feature_names()[:10], vectorizer.get_feature_names()[10:]))
-
-# Get the top 20 trigrams
-trigrams = list(zip(vectorizer.get_feature_names()[:5], vectorizer.get_feature_names()[5:10], vectorizer.get_feature_names()[10:]))
-
-# Create a barplot of the top 20 unigrams
+# Plot top 20 unigrams
+unigram_counts = Counter(unigrams)
+top20_unigrams = unigram_counts.most_common(20)
+unigram_df = pd.DataFrame(top20_unigrams, columns=['Unigram', 'Count'])
 plt.figure(figsize=(10, 6))
-sns.barplot(unigrams, vectorizer.transform(text_data).sum(axis=0).tolist())
-plt.title("Top 20 unigrams")
+sns.barplot(x='Count', y='Unigram', data=unigram_df)
+plt.title('Top 20 Unigrams')
+plt.xlabel('Count')
+plt.ylabel('Unigram')
 plt.show()
 
-# Create a barplot of the top 20 bigrams
+# Plot top 20 bigrams
+bigram_counts = Counter(bigrams)
+top20_bigrams = bigram_counts.most_common(20)
+bigram_df = pd.DataFrame(top20_bigrams, columns=['Bigram', 'Count'])
 plt.figure(figsize=(10, 6))
-sns.barplot(bigrams, vectorizer.transform(text_data).sum(axis=0).tolist())
-plt.title("Top 20 bigrams")
+sns.barplot(x='Count', y='Bigram', data=bigram_df)
+plt.title('Top 20 Bigrams')
+plt.xlabel('Count')
+plt.ylabel('Bigram')
 plt.show()
 
-# Create a barplot of the top 20 trigrams
+# Plot top 20 trigrams
+trigram_counts = Counter(trigrams)
+top20_trigrams = trigram_counts.most_common(20)
+trigram_df = pd.DataFrame(top20_trigrams, columns=['Trigram', 'Count'])
 plt.figure(figsize=(10, 6))
-sns.barplot(trigrams, vectorizer.transform(text_data).sum(axis=0).tolist())
-plt.title("Top 20 trigrams")
+sns.barplot(x='Count', y='Trigram', data=trigram_df)
+plt.title('Top 20 Trigrams')
+plt.xlabel('Count')
+plt.ylabel('Trigram')
 plt.show()
 
-# Create a word cloud of the text data
-wordcloud = WordCloud(background_color="black", max_words=200).generate(" ".join(text_data))
+# Generate word cloud
+text = ' '.join(df['Text'])
+wordcloud = WordCloud(width=800, height=400, background_color='white').generate(text)
+
+# Plot word cloud
 plt.figure(figsize=(10, 6))
-plt.imshow(wordcloud)
-plt.title("Word cloud of text data")
+plt.imshow(wordcloud, interpolation='bilinear')
+plt.title('Word Cloud')
+plt.axis('off')
 plt.show()
