@@ -1,4 +1,60 @@
 import random
+import string
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+# Generate 100 text data
+text_data = []
+for i in range(100):
+  text = ""
+  for j in range(100):
+    char = random.choice(string.ascii_lowercase)
+    text += char
+  text_data.append(text)
+
+# Create a CountVectorizer object
+vectorizer = CountVectorizer()
+
+# Fit the CountVectorizer object to the text data
+vectorizer.fit(text_data)
+
+# Get the top 20 unigrams
+unigrams = vectorizer.get_feature_names()[:20]
+
+# Get the top 20 bigrams
+bigrams = list(zip(vectorizer.get_feature_names()[:10], vectorizer.get_feature_names()[10:]))
+
+# Get the top 20 trigrams
+trigrams = list(zip(vectorizer.get_feature_names()[:5], vectorizer.get_feature_names()[5:10], vectorizer.get_feature_names()[10:]))
+
+# Create a barplot of the top 20 unigrams
+plt.figure(figsize=(10, 6))
+sns.barplot(unigrams, vectorizer.transform(text_data).sum(axis=0).tolist())
+plt.title("Top 20 unigrams")
+plt.show()
+
+# Create a barplot of the top 20 bigrams
+plt.figure(figsize=(10, 6))
+sns.barplot(bigrams, vectorizer.transform(text_data).sum(axis=0).tolist())
+plt.title("Top 20 bigrams")
+plt.show()
+
+# Create a barplot of the top 20 trigrams
+plt.figure(figsize=(10, 6))
+sns.barplot(trigrams, vectorizer.transform(text_data).sum(axis=0).tolist())
+plt.title("Top 20 trigrams")
+plt.show()
+
+# Create a word cloud of the text data
+wordcloud = WordCloud(background_color="black", max_words=200).generate(" ".join(text_data))
+plt.figure(figsize=(10, 6))
+plt.imshow(wordcloud)
+plt.title("Word cloud of text data")
+plt.show()
+
+
+##################################################second round#########################
+import random
 from datetime import datetime, timedelta
 import plotly.graph_objects as go
 import pandas as pd
