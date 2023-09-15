@@ -13,3 +13,18 @@ for page in range(pdf_reader.getNumPages()):
   
 with open('output.txt', 'w') as file:  
     file.write(text)  
+
+#pip install PyMuPDF  
+
+
+import fitz  
+  
+pdf_file = fitz.open('example.pdf')  
+  
+text = ''  
+for page in pdf_file:  
+    text += page.getText()  
+  
+with open('output.txt', 'w') as file:  
+    file.write(text)  
+
