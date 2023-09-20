@@ -13,3 +13,50 @@ for page in range(pdf_reader.getNumPages()):
   
 with open('output.txt', 'w') as file:  
     file.write(text)  
+
+
+######################################cluster###########################
+
+import pandas as pd  
+import PyPDF2  
+  
+# open the PDF file in read-binary mode  
+with open('example.pdf', 'rb') as pdf_file:  
+    # create a PDF reader object  
+    pdf_reader = PyPDF2.PdfFileReader(pdf_file)  
+      
+    # iterate over each page in the PDF file  
+    clusters = {}  
+    for page_num in range(pdf_reader.getNumPages()):  
+        # get the page object  
+        page = pdf_reader.getPage(page_num)  
+          
+        # get the text content of the page  
+        page_text = page.extractText()  
+          
+        # iterate over each line of text in the page  
+        for line in page_text.split('\n'):  
+            # get the font size of the line  
+            font_size = line.strip().split()[-1]  
+              
+            # add the line to the appropriate cluster based on font size  
+            if font_size in clusters:  
+                clusters[font_size].append(line)  
+            else:  
+                clusters[font_size] = [line]  
+      
+    # create a Pandas DataFrame with the font size and cluster of text  
+    df = pd.DataFrame({'size': [], 'cluster': []})  
+    for font_size, lines in clusters.items():  
+        # join the lines in each cluster into a single string  
+        cluster_text = '\n'.join(lines)  
+          
+        # add the font size and cluster text to the DataFrame  
+        df = df.append({'size': float(font_size), 'cluster': cluster_text}, ignore_index=True)  
+      
+    # sort the DataFrame by font size in ascending order  
+    df = df.sort_values(by='size')  
+      
+    # print the resulting DataFrame  
+    print(df)  
+
