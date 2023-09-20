@@ -65,3 +65,31 @@ with pdfplumber.open('example.pdf') as pdf:
     toc = '\n'.join(toc_lines)  
     print(toc)  
 
+#############################################################################################
+
+import re  
+import pdfplumber  
+  
+def is_toc_entry(line):  
+    # Define a regular expression pattern for table of content entries  
+    pattern = r'^\s*\d+\s+.*[A-Za-z]+.*\s+\d+\s*$'  
+    return bool(re.match(pattern, line))  
+  
+# open the PDF file  
+with pdfplumber.open('example.pdf') as pdf:  
+    # Check each page for table of content entries  
+    toc_lines = []  
+    for page in pdf.pages:  
+        # Extract text from the page  
+        page_text = page.extract_text()  
+          
+        # Check each line for a table of content entry  
+        for line in page_text.split('\n'):  
+            if is_toc_entry(line):  
+                toc_lines.append(line)  
+      
+    # Print the table of contents  
+    toc = '\n'.join(toc_lines)  
+    print(toc)  
+
+
