@@ -1,0 +1,39 @@
+#pip install pdfplumber 
+
+
+import pandas as pd  
+import pdfplumber  
+  
+# open the PDF file  
+with pdfplumber.open('example.pdf') as pdf:  
+    # iterate over each page in the PDF file  
+    clusters = {}  
+    for page in pdf.pages:  
+        # get the text content of the page with font size information  
+        chars = page.chars  
+          
+        # iterate over each character in the page  
+        for char in chars:  
+            # get the font size of the character  
+            font_size = char["size"]  
+              
+            # add the character to the appropriate cluster based on font size  
+            if font_size in clusters:  
+                clusters[font_size].append(char["text"])  
+            else:  
+                clusters[font_size] = [char["text"]]  
+      
+    # create a Pandas DataFrame with the font size and cluster of text  
+    df = pd.DataFrame({'size': [], 'cluster': []})  
+    for font_size, chars in clusters.items():  
+        # join the characters in each cluster into a single string  
+        cluster_text = ''.join(chars)  
+          
+        # add the font size and cluster text to the DataFrame  
+        df = df.append({'size': font_size, 'cluster': cluster_text}, ignore_index=True)  
+      
+    # sort the DataFrame by font size in ascending order  
+    df = df.sort_values(by='size')  
+      
+    # print the resulting DataFrame  
+    print(df)  
