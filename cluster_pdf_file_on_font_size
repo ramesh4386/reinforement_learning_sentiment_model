@@ -124,4 +124,52 @@ with pdfplumber.open('example.pdf') as pdf:
     print(toc)  
 
 
+#######################################################################
+
+import re  
+import pdfplumber  
+  
+def is_toc_entry(line):  
+    # Define a regular expression pattern for table of content entries  
+    pattern = r'^\s*(\d+(\.\d+)*|\w+)\s+.*[A-Za-z]+.*\s+\d+\s*$'  
+    return bool(re.match(pattern, line))  
+  
+def is_header_or_footer(line, header_footer_keywords):  
+    for keyword in header_footer_keywords:  
+        if keyword.lower() in line.lower():  
+            return True  
+    return False  
+  
+# List of common header/footer keywords to ignore  
+header_footer_keywords = ["Chapter", "Contents", "Page", "Index"]  
+  
+# open the PDF file  
+with pdfplumber.open('example.pdf') as pdf:  
+    # Check each page for table of content entries  
+    toc_lines = []  
+      
+    # Limit the analysis to the first 10 pages  
+    for page_number in range(min(10, len(pdf.pages))):  
+        page = pdf.pages[page_number]  
+          
+        # Extract text from the page  
+        page_text = page.extract_text()  
+          
+        # Check each line for a table of content entry  
+        consecutive_toc_lines = []  
+        for line in page_text.split('\n'):  
+            if is_toc_entry(line) and not is_header_or_footer(line, header_footer_keywords):  
+                consecutive_toc_lines.append(line)  
+            else:  
+                # If the number of consecutive lines is greater than a threshold (e.g., 3), consider it as a TOC  
+                if len(consecutive_toc_lines) > 3:  
+                    toc_lines.extend(consecutive_toc_lines)  
+                consecutive_toc_lines = []  
+      
+    # Print the table of contents  
+    toc = '\n'.join(toc_lines)  
+    print(toc)  
+
+
+
 
