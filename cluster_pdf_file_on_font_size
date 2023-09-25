@@ -177,25 +177,28 @@ import pdfplumber
   
 # Open the PDF file  
 with pdfplumber.open('example.pdf') as pdf:  
-    # Initialize an empty list to store the header information  
-    header_info = []  
+    # Initialize an empty list to store the header and footer information  
+    header_footer_info = []  
       
     # Iterate over each page in the PDF  
     for page_number in range(len(pdf.pages)):  
         page = pdf.pages[page_number]  
           
-        # Extract the header text and font size from the first text box on the page  
-        header = page.extract_text().split('\n')[0]  
-        font_size = page.extract_words()[0]['size']  
+        # Extract the header and footer text and font size from the first and last text boxes on the page  
+        header_text = page.extract_text().split('\n')[0]  
+        footer_text = page.extract_text().split('\n')[-1]  
+        header_font_size = page.extract_words()[0]['size']  
+        footer_font_size = page.extract_words()[-1]['size']  
           
-        # Append the header information to the list  
-        header_info.append({'Page': page_number+1, 'Header': header, 'Font Size': font_size})  
+        # Append the header and footer information to the list  
+        header_footer_info.append({'Page': page_number+1, 'Header Text': header_text, 'Header Font Size': header_font_size, 'Footer Text': footer_text, 'Footer Font Size': footer_font_size})  
       
     # Convert the list to a Pandas DataFrame  
-    df = pd.DataFrame(header_info)  
+    df = pd.DataFrame(header_footer_info)  
       
     # Print the DataFrame  
     print(df)  
+
 
 
 
