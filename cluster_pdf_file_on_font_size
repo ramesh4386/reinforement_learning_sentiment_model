@@ -252,41 +252,43 @@ print(df)
 ##############################
 import re  
 import pandas as pd  
-import PyPDF2  
+from pdfminer.high_level import extract_text  
   
 # Function to determine if a line contains a heading  
 def is_heading(line):  
     # Regular expression to match common heading formats  
     pattern = r'^(\d+(\.\d+)*\s+)?([A-Z][a-z]*|[A-Z\s]+)$'  
-    return re.match(pattern, line.strip()) is not None  
+    words = line.strip().split()  
+    return re.match(pattern, line.strip()) is not None and len(words) < 7  
   
-# Open the PDF file  
-with open('example.pdf', 'rb') as file:  
-    reader = PyPDF2.PdfFileReader(file)  
-    headings_info = []  
+# Extract text from the PDF file  
+text = extract_text('example.pdf')  
+headings_info = []  
+page_number = 1  
   
-    # Iterate over each page in the PDF  
-    for page_number in range(reader.numPages):  
-        page = reader.getPage(page_number)  
-        text = page.extract_text()  
-        lines = text.splitlines()  
+# Iterate over each line in the extracted text  
+for line in text.splitlines():  
+    # Check for a new page  
+    if line.startswith("Page "):  
+        try:  
+            int(line.split(" ")[-1])  
+            page_number += 1  
+            continue  
+        except ValueError:  
+            pass  
   
-        # Extract the headings  
-        for line in lines:  
-            if is_heading(line):  
-                headings_info.append({  
-                    'Page': page_number + 1,  
-                    'Text': line,  
-                })  
+    # Extract the headings  
+    if is_heading(line):  
+        headings_info.append({  
+            'Page': page_number,  
+            'Text': line,  
+        })  
   
-    # Convert the list to a Pandas DataFrame  
-    df = pd.DataFrame(headings_info)  
+# Convert the list to a Pandas DataFrame  
+df = pd.DataFrame(headings_info)  
   
-    # Print the DataFrame  
-    print(df)  
-
-
-
+# Print the DataFrame  
+print(df)  
 
 
 
