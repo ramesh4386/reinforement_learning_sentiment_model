@@ -201,7 +201,6 @@ with pdfplumber.open('example.pdf') as pdf:
     # Print the DataFrame  
     print(df)  
 ###########################headings###################
-
 import pandas as pd  
 import pdfplumber  
   
@@ -220,27 +219,32 @@ with pdfplumber.open('example.pdf') as pdf:
     for page_number in range(len(pdf.pages)):  
         page = pdf.pages[page_number]  
         words = page.extract_words()  
-          
+  
         # Identify unique font sizes on the page  
-        font_sizes = list(set(word['size'] for word in words))  
+        font_sizes = list(set(word.get('size', None) for word in words if word.get('size', None) is not None))  
   
         # Extract the headings and font sizes  
         for word in words:  
             if word['text'].isupper():  
-                font_size = word['size']  
-                heading_level = get_heading_level(font_size, font_sizes)  
-                headings_info.append({  
-                    'Page': page_number + 1,  
-                    'Text': word['text'],  
-                    'Font Size': font_size,  
-                    'Heading Level': f'H{heading_level}'  
-                })  
+                font_size = word.get('size', None)  
+                if font_size is not None:  
+                    heading_level = get_heading_level(font_size, font_sizes)  
+                    headings_info.append({  
+                        'Page': page_number + 1,  
+                        'Text': word['text'],  
+                        'Font Size': font_size,  
+                        'Heading Level': f'H{heading_level}'  
+                    })  
   
     # Convert the list to a Pandas DataFrame  
     df = pd.DataFrame(headings_info)  
   
     # Print the DataFrame  
     print(df)  
+
+
+  
+    
 ################
 import pandas as pd  
 import pdfplumber  
