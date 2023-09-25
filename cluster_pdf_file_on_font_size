@@ -187,8 +187,10 @@ with pdfplumber.open('example.pdf') as pdf:
         # Extract the header and footer text and font size from the first and last text boxes on the page  
         header_text = page.extract_text().split('\n')[0]  
         footer_text = page.extract_text().split('\n')[-1]  
-        header_font_size = page.extract_words()[0]['size']  
-        footer_font_size = page.extract_words()[-1]['size']  
+          
+        words = page.extract_words()  
+        header_font_size = words[0]['size'] if words else None  
+        footer_font_size = words[-1]['size'] if words else None  
           
         # Append the header and footer information to the list  
         header_footer_info.append({'Page': page_number+1, 'Header Text': header_text, 'Header Font Size': header_font_size, 'Footer Text': footer_text, 'Footer Font Size': footer_font_size})  
@@ -198,6 +200,7 @@ with pdfplumber.open('example.pdf') as pdf:
       
     # Print the DataFrame  
     print(df)  
+
 
 
 
