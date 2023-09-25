@@ -202,145 +202,52 @@ with pdfplumber.open('example.pdf') as pdf:
     print(df)  
 ###########################headings###################
 import pandas as pd  
-import pdfplumber  
+from pdfminer.high_level import extract_pages  
+from pdfminer.layout import LTTextContainer, LTChar  
   
-# Function to identify heading level based on font size  
-def get_heading_level(font_size, font_sizes):  
-    for i, size in enumerate(sorted(font_sizes, reverse=True)):  
-        if font_size == size:  
-            return i + 1  
-    return None  
+# Function to determine if a line contains a heading  
+def is_heading(line, font_sizes):  
+    for size in sorted(font_sizes, reverse=True)[:5]:  # Consider top 5 largest font sizes as headings  
+        if line.startswith(f'{size}:'):  
+            return True, size  
+    return False, None  
   
-# Open the PDF file  
-with pdfplumber.open('example.pdf') as pdf:  
-    headings_info = []  
+# Extract pages from the PDF file  
+pages = list(extract_pages('example.pdf'))  
+headings_info = []  
   
-    # Iterate over each page in the PDF  
-    for page_number in range(len(pdf.pages)):  
-        page = pdf.pages[page_number]  
-        words = page.extract_words()  
+# Iterate over each page in the PDF  
+for page_number, page in enumerate(pages):  
+    page_text = ""  
+    font_sizes = set()  
   
-        # Identify unique font sizes on the page  
-        font_sizes = list(set(word.get('size', None) for word in words if word.get('size', None) is not None))  
+    # Extract text and font sizes  
+    for element in page:  
+        if isinstance(element, LTTextContainer):  
+            for text_line in element:  
+                for character in text_line:  
+                    if isinstance(character, LTChar):  
+                        font_sizes.add(round(character.size, 1))  
+                        page_text += f"{round(character.size, 1)}:{character.get_text()}"  
+                    else:  
+                        page_text += character.get_text()  
   
-        # Extract the headings and font sizes  
-        for word in words:  
-            if word['text'].isupper():  
-                font_size = word.get('size', None)  
-                if font_size is not None:  
-                    heading_level = get_heading_level(font_size, font_sizes)  
-                    headings_info.append({  
-                        'Page': page_number + 1,  
-                        'Text': word['text'],  
-                        'Font Size': font_size,  
-                        'Heading Level': f'H{heading_level}'  
-                    })  
+    # Extract headings and their sizes  
+    lines = page_text.splitlines()  
+    for line in lines:  
+        heading, font_size = is_heading(line, font_sizes)  
+        if heading:  
+            headings_info.append({  
+                'Page': page_number + 1,  
+                'Text': line.split(':', 1)[1],  
+                'Font Size': font_size,  
+            })  
   
-    # Convert the list to a Pandas DataFrame  
-    df = pd.DataFrame(headings_info)  
+# Convert the list to a Pandas DataFrame  
+df = pd.DataFrame(headings_info)  
   
-    # Print the DataFrame  
-    print(df)  
-
-
-  
-    
-################
-import pandas as pd  
-import pdfplumber  
-  
-# Function to identify heading level based on font size  
-def get_heading_level(font_size, font_sizes):  
-    for i, size in enumerate(sorted(font_sizes, reverse=True)):  
-        if font_size == size:  
-            return i + 1  
-    return None  
-  
-# Open the PDF file  
-with pdfplumber.open('example.pdf') as pdf:  
-    headings_info = []  
-  
-    # Iterate over each page in the PDF  
-    for page_number in range(len(pdf.pages)):  
-        page = pdf.pages[page_number]  
-        words = page.extract_words()  
-          
-        # Identify unique font sizes on the page  
-        font_sizes = list(set(word['size'] for word in words))  
-          
-        # Calculate the average font size  
-        avg_font_size = sum(word['size'] for word in words) / len(words)  
-  
-        # Extract the headings and font sizes  
-        for word in words:  
-            if word['text'].isupper() and word['size'] > avg_font_size:  
-                font_size = word['size']  
-                heading_level = get_heading_level(font_size, font_sizes)  
-                headings_info.append({  
-                    'Page': page_number + 1,  
-                    'Text': word['text'],  
-                    'Font Size': font_size,  
-                    'Heading Level': f'H{heading_level}'  
-                })  
-  
-    # Convert the list to a Pandas DataFrame  
-    df = pd.DataFrame(headings_info)  
-  
-    # Print the DataFrame  
-    print(df)  
-
-########################################
-
-import pandas as pd  
-import pdfplumber  
-from collections import defaultdict  
-  
-# Function to identify heading level based on font size  
-def get_heading_level(font_size, font_sizes):  
-    for i, size in enumerate(sorted(font_sizes, reverse=True)):  
-        if font_size == size:  
-            return i + 1  
-    return None  
-  
-# Open the PDF file  
-with pdfplumber.open('example.pdf') as pdf:  
-    headings_info = []  
-  
-    # Iterate over each page in the PDF  
-    for page_number in range(len(pdf.pages)):  
-        page = pdf.pages[page_number]  
-        words = page.extract_words()  
-  
-        # Group words by their font sizes  
-        words_by_size = defaultdict(list)  
-        for word in words:  
-            font_size = word.get('size', None)  
-            if font_size is not None:  
-                words_by_size[font_size].append(word)  
-  
-        # Identify unique font sizes on the page  
-        font_sizes = sorted(words_by_size.keys(), reverse=True)  
-  
-        # Extract the headings and font sizes  
-        for word in words:  
-            font_size = word.get('size', None)  
-            if font_size is not None:  
-                heading_level = get_heading_level(font_size, font_sizes)  
-                if heading_level <= 5:  # Change this number to capture more heading levels  
-                    headings_info.append({  
-                        'Page': page_number + 1,  
-                        'Text': word['text'],  
-                        'Font Size': font_size,  
-                        'Heading Level': f'H{heading_level}'  
-                    })  
-  
-    # Convert the list to a Pandas DataFrame  
-    df = pd.DataFrame(headings_info)  
-  
-    # Print the DataFrame  
-    print(df)  
-
-
+# Print the DataFrame  
+print(df)  
 
 
 
