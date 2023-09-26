@@ -320,7 +320,7 @@ def is_heading(line):
     return re.match(pattern, line.strip()) is not None and len(words) < 7  
   
 def get_line_font_size(line):  
-    font_sizes = [round(char.size, 1) for char in line if isinstance(char, LTChar)]  
+    font_sizes = [round(char.size, 1) for char in line._objs if isinstance(char, LTChar)]  
     return max(font_sizes, default=None) if font_sizes else None  
   
 def is_larger_font(line, avg_font_size):  
@@ -362,4 +362,3 @@ df = pd.DataFrame(headings_info)
   
 # Print the DataFrame  
 print(df)  
-
