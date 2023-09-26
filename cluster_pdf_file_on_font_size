@@ -320,12 +320,19 @@ def is_heading(line):
     return re.match(pattern, line.strip()) is not None and len(words) < 7  
   
 def get_line_font_size(line):  
-    font_sizes = []  
-    for child in line._objs:  
-        if isinstance(child, LTChar):  
-            font_sizes.append(round(child.size, 1))  
-        elif hasattr(child, "_objs"):  
-            font_sizes.extend([round(grandchild.size, 1) for grandchild in child._objs if isinstance(grandchild, LTChar)])  
+    def get_chars_recursive(obj):  
+        if isinstance(obj, LTChar):  
+            return [obj]  
+        elif hasattr(obj, "_objs"):  
+            chars = []  
+            for child in obj._objs:  
+                chars.extend(get_chars_recursive(child))  
+            return chars  
+        else:  
+            return []  
+  
+    chars = get_chars_recursive(line)  
+    font_sizes = [round(char.size, 1) for char in chars]  
     return max(font_sizes, default=None) if font_sizes else None  
   
 def is_larger_font(line, avg_font_size):  
