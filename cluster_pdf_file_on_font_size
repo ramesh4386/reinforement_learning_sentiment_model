@@ -306,3 +306,60 @@ df = pd.DataFrame(headings_info)
   
 # Print the DataFrame  
 print(df)  
+
+##################################################
+
+import re  
+import pandas as pd  
+from pdfminer.high_level import extract_pages  
+from pdfminer.layout import LTTextContainer, LTChar  
+  
+def is_heading(line):  
+    pattern = r'^(\d+(\.\d+)*\s+)?([A-Z][a-z]*|[A-Z\s]+)$'  
+    words = line.strip().split()  
+    return re.match(pattern, line.strip()) is not None and len(words) < 7  
+  
+def get_line_font_size(line):  
+    font_sizes = [round(char.size, 1) for char in line if isinstance(char, LTChar)]  
+    return max(font_sizes, default=None) if font_sizes else None  
+  
+def is_larger_font(line, avg_font_size):  
+    font_size = get_line_font_size(line)  
+    return font_size is not None and font_size > avg_font_size  
+  
+# Extract pages from the PDF file  
+pages = list(extract_pages('example.pdf'))  
+headings_info = []  
+  
+# Iterate over each page in the PDF  
+for page_number, page in enumerate(pages):  
+    text_lines = []  
+    font_sizes = []  
+  
+    # Extract text and font sizes  
+    for element in page:  
+        if isinstance(element, LTTextContainer):  
+            for text_line in element:  
+                text_lines.append(text_line)  
+                font_size = get_line_font_size(text_line)  
+                if font_size is not None:  
+                    font_sizes.append(font_size)  
+  
+    # Calculate the average font size  
+    avg_font_size = sum(font_sizes) / len(font_sizes) if font_sizes else 0  
+  
+    # Extract the headings  
+    for text_line in text_lines:  
+        line_text = text_line.get_text().strip()  
+        if is_heading(line_text) and is_larger_font(text_line, avg_font_size):  
+            headings_info.append({  
+                'Page': page_number + 1,  
+                'Text': line_text,  
+            })  
+  
+# Convert the list to a Pandas DataFrame  
+df = pd.DataFrame(headings_info)  
+  
+# Print the DataFrame  
+print(df)  
+
