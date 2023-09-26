@@ -252,7 +252,8 @@ print(df)
 ##############################
 import re  
 import pandas as pd  
-from pdfminer.high_level import extract_text  
+from pdfminer.high_level import extract_pages  
+from pdfminer.layout import LTTextContainer  
   
 # Function to determine if a line contains a heading  
 def is_heading(line):  
@@ -261,34 +262,47 @@ def is_heading(line):
     words = line.strip().split()  
     return re.match(pattern, line.strip()) is not None and len(words) < 7  
   
-# Extract text from the PDF file  
-text = extract_text('example.pdf')  
+# Function to extract page number from a page's text  
+def extract_page_number(text_lines, page_number):  
+    for line in text_lines:  
+        if line.startswith("Page "):  
+            try:  
+                page_number = int(line.split(" ")[-1])  
+                return page_number  
+            except ValueError:  
+                pass  
+    return page_number  
+  
+# Extract pages from the PDF file  
+pages = list(extract_pages('example.pdf'))  
 headings_info = []  
 page_number = 1  
   
-# Iterate over each line in the extracted text  
-for line in text.splitlines():  
-    # Check for a new page  
-    if line.startswith("Page "):  
-        try:  
-            int(line.split(" ")[-1])  
-            page_number += 1  
-            continue  
-        except ValueError:  
-            pass  
+# Iterate over each page in the PDF  
+for page in pages:  
+    page_text = ""  
+  
+    # Extract text from the page layout  
+    for element in page:  
+        if isinstance(element, LTTextContainer):  
+            page_text += element.get_text()  
+  
+    # Extract the page number  
+    page_number = extract_page_number(page_text.splitlines(), page_number)  
   
     # Extract the headings  
-    if is_heading(line):  
-        headings_info.append({  
-            'Page': page_number,  
-            'Text': line,  
-        })  
+    for line in page_text.splitlines():  
+        if is_heading(line):  
+            headings_info.append({  
+                'Page': page_number,  
+                'Text': line,  
+            })  
+  
+    # Increment the page number  
+    page_number += 1  
   
 # Convert the list to a Pandas DataFrame  
 df = pd.DataFrame(headings_info)  
   
 # Print the DataFrame  
 print(df)  
-
-
-
