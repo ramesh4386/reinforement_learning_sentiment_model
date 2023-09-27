@@ -45,3 +45,50 @@ def extract_text_info(file_path):
 file_path = "path/to/your/pdf/file.pdf"  
 df = extract_text_info(file_path)  
 print(df)  
+
+
+#########################################
+
+#!pip install PyMuPDF  
+
+import pandas as pd  
+import fitz  
+  
+def extract_text_info(file_path):  
+    data = []  
+  
+    with fitz.open(file_path) as doc:  
+        for page_num in range(len(doc)):  
+            page = doc.load_page(page_num)  
+            page_dict = page.get_text("dict")  
+            prev_line_y = None  
+  
+            for block in page_dict["blocks"]:  
+                if block["type"] == 0:  # Text block  
+                    for line in block["lines"]:  
+                        text = "".join([span["text"] for span in line["spans"]])  
+                        font_size = line["spans"][0]["size"]  
+                        y0 = line["bbox"][1]  
+  
+                        if prev_line_y is not None:  
+                            space_down = prev_line_y - y0  
+                            space_up = y0 - prev_line_y  
+                        else:  
+                            space_up = 0  
+                            space_down = 0  
+  
+                        prev_line_y = y0  
+  
+                        data.append({  
+                            "text": text,  
+                            "font_size": font_size,  
+                            "space_up": space_up,  
+                            "space_down": space_down,  
+                            "page_num": page_num + 1  
+                        })  
+  
+    return pd.DataFrame(data)  
+  
+# file_path = "path"  
+# df = extract_text_info(file_path)  
+# print(df)
