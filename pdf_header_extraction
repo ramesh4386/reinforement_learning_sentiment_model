@@ -1,7 +1,6 @@
-#pip install pdfminer.six  
 import pandas as pd  
 from pdfminer.high_level import extract_pages  
-from pdfminer.layout import LTTextContainer, LTChar, LTAnno  
+from pdfminer.layout import LTTextContainer, LTChar, LTAnno, LTTextBox  
   
 def extract_text_info(file_path):  
     data = []  
@@ -9,33 +8,33 @@ def extract_text_info(file_path):
     for page_num, page_layout in enumerate(extract_pages(file_path), start=1):  
         for element in page_layout:  
             if isinstance(element, LTTextContainer):  
+                prev_line_y = None  
                 for text_line in element:  
                     text = ""  
                     font_size = 0  
                     space_up = 0  
                     space_down = 0  
-                    space_front = 0  
-                    space_back = 0  
+  
                     for character in text_line:  
                         if isinstance(character, LTChar):  
                             font_size = character.size  
-                            space_up = character.space_up  
-                            space_down = character.space_down  
-                            space_front = character.space_front  
-                            space_back = character.space_back  
                             break  
   
                     for character in text_line:  
                         if isinstance(character, (LTChar, LTAnno)):  
                             text += character.get_text()  
   
+                    if prev_line_y is not None:  
+                        space_down = prev_line_y - text_line.y1  
+                        space_up = text_line.y0 - prev_line_y  
+  
+                    prev_line_y = text_line.y0  
+  
                     data.append({  
                         "text": text,  
                         "font_size": font_size,  
                         "space_up": space_up,  
                         "space_down": space_down,  
-                        "space_front": space_front,  
-                        "space_back": space_back,  
                         "page_num": page_num  
                     })  
   
@@ -44,4 +43,3 @@ def extract_text_info(file_path):
 file_path = "path/to/your/pdf/file.pdf"  
 df = extract_text_info(file_path)  
 print(df)  
-
