@@ -144,3 +144,60 @@ file_path = "./path"
 df = extract_text_info(file_path)  
 print(df)  
 
+##################################
+
+import pandas as pd  
+import fitz  
+  
+def extract_text_info(file_path):  
+    data = []  
+  
+    with fitz.open(file_path) as doc:  
+        for page_num in range(len(doc)):  
+            page = doc.load_page(page_num)  
+            page_dict = page.get_text("dict")  
+            prev_line_x0, prev_line_x1 = None, None  
+  
+            for block in page_dict["blocks"]:  
+                if block["type"] == 0:  # Text block  
+                    for line in block["lines"]:  
+                        text = "".join([span["text"] for span in line["spans"]])  
+                        font_size = line["spans"][0]["size"]  
+                        x0, y0, x1, y1 = line["bbox"]  
+  
+                        # Check if the text is bold  
+                        font_name = line["spans"][0]["font"]  
+                        bold = "Bold" in font_name  
+  
+                        if prev_line_x0 is not None and prev_line_x1 is not None:  
+                            space_up = y0 - prev_line_y  
+                            space_down = prev_line_y - y0  
+                            space_front = x0 - prev_line_x0  
+                            space_back = prev_line_x1 - x1  
+                        else:  
+                            space_up = 0  
+                            space_down = 0  
+                            space_front = 0  
+                            space_back = 0  
+  
+                        prev_line_y = y0  
+                        prev_line_x0, prev_line_x1 = x0, x1  
+  
+                        data.append({  
+                            "text": text,  
+                            "font_size": font_size,  
+                            "space_up": space_up,  
+                            "space_down": space_down,  
+                            "space_front": space_front,  
+                            "space_back": space_back,  
+                            "page_num": page_num + 1,  
+                            "Bold": bold  
+                        })  
+  
+    return pd.DataFrame(data)  
+  
+file_path = "./path"  
+df = extract_text_info(file_path)  
+print(df)  
+
+
