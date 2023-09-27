@@ -140,7 +140,7 @@ def extract_text_info(file_path):
   
     return pd.DataFrame(data)  
   
-file_path = "./Relias Employee Handbook_2023.pdf"  
+file_path = "./path"  
 df = extract_text_info(file_path)  
 print(df)  
 
