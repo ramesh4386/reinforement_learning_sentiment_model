@@ -1,6 +1,6 @@
 import pandas as pd  
 from pdfminer.high_level import extract_pages  
-from pdfminer.layout import LTTextContainer, LTChar, LTAnno, LTTextBox  
+from pdfminer.layout import LTTextContainer, LTChar  
   
 def extract_text_info(file_path):  
     data = []  
@@ -15,20 +15,22 @@ def extract_text_info(file_path):
                     space_up = 0  
                     space_down = 0  
   
+                    # Iterate through LTChar objects and find the first character's font size  
                     for character in text_line:  
                         if isinstance(character, LTChar):  
                             font_size = character.size  
                             break  
   
-                    for character in text_line:  
-                        if isinstance(character, (LTChar, LTAnno)):  
+                    # Build the text string and calculate vertical space  
+                    for idx, character in enumerate(text_line):  
+                        if isinstance(character, LTChar):  
                             text += character.get_text()  
   
-                    if prev_line_y is not None:  
-                        space_down = prev_line_y - text_line.y1  
-                        space_up = text_line.y0 - prev_line_y  
+                            if idx > 0 and prev_line_y is not None:  
+                                space_down = prev_line_y - character.bbox[3]  
+                                space_up = character.bbox[1] - prev_line_y  
   
-                    prev_line_y = text_line.y0  
+                            prev_line_y = character.bbox[1]  
   
                     data.append({  
                         "text": text,  
