@@ -1,0 +1,45 @@
+# Import required libraries  
+import pandas as pd  
+import numpy as np  
+from sklearn.svm import SVC  
+from sklearn.ensemble import BaggingClassifier  
+from sklearn.model_selection import train_test_split  
+from sklearn.metrics import accuracy_score, precision_score, recall_score  
+  
+# Load stock market data  
+data = pd.read_csv("stock_data.csv")  
+  
+# Preprocess the data and create binary labels for price trends  
+data["PriceTrend"] = np.where(data["PriceAt12"] >= data["OpeningPrice"], 1, 0)  
+  
+# Split the data into training and test sets  
+X = data.drop(["PriceTrend"], axis=1)  
+y = data["PriceTrend"]  
+  
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)  
+  
+# Build and train the SVM ensemble model using bagging  
+svc = SVC(kernel="rbf", C=1, gamma="scale")  
+  
+bagging_clf = BaggingClassifier(  
+    base_estimator=svc,  
+    n_estimators=10,  
+    max_samples=0.5,  
+    bootstrap=True,  
+    n_jobs=-1,  
+    random_state=42,  
+)  
+  
+bagging_clf.fit(X_train, y_train)  
+  
+# Make predictions on the test data  
+y_pred = bagging_clf.predict(X_test)  
+  
+# Evaluate the model's performance  
+accuracy = accuracy_score(y_test, y_pred)  
+precision = precision_score(y_test, y_pred)  
+recall = recall_score(y_test, y_pred)  
+  
+print("Accuracy:", accuracy)  
+print("Precision:", precision)  
+print("Recall:", recall)  
