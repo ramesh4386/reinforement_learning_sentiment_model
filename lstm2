@@ -39,8 +39,19 @@ data["VPT"] = VolumePriceTrendIndicator(data["Close"], data["Volume"]).volume_pr
 data.dropna(inplace=True)  
   
 # Split the data into training and test sets  
-train_data = data[:-1]  
-test_data = data[-1:]  
+data["Date"] = pd.to_datetime(data["Date"])  
+data.set_index("Date", inplace=True)  
+  
+# Ensure data is sorted by date and time  
+data.sort_index(inplace=True)  
+  
+# Calculate the number of rows corresponding to the last 4 hours of trading time  
+# Assuming each row represents a 1-minute timeframe, there are 240 minutes in 4 hours  
+rows_in_last_4_hours = 240  
+  
+# Split the data into training and test sets  
+train_data = data[:-rows_in_last_4_hours]  
+test_data = data[-rows_in_last_4_hours:]  
   
 # Scale the features  
 scaler = MinMaxScaler(feature_range=(0, 1))  
