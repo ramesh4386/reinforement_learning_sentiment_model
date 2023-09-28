@@ -82,7 +82,16 @@ X_test, y_test = create_dataset(test_data_scaled, window_size)
 predictions = model.predict(X_test)  
   
 # Inverse transform the predictions  
-predictions = scaler.inverse_transform(np.concatenate((predictions, X_test[:, :, 1:]), axis=2))[:, 0]  
+#predictions = scaler.inverse_transform(np.concatenate((predictions, X_test[:, :, 1:]), axis=2))[:, 0]
+# Create a dummy array with the same shape as the test dataset  
+dummy_array = np.zeros((predictions.shape[0], test_data_scaled.shape[1]))  
+  
+# Replace the first column of the dummy array with the predictions  
+dummy_array[:, 0] = predictions[:, 0]  
+  
+# Inverse transform the predictions  
+predictions_inverse_transformed = scaler.inverse_transform(dummy_array)[:, 0]  
+
   
 # Generate buy and sell signals  
 buy_signals = []  
