@@ -156,6 +156,35 @@ fig.update_layout(
   
 # Show the figure  
 fig.show()  
+#############################################
 
+buy_signals = []  
+sell_signals = []  
+  
+for i in range(1, len(predictions)):  
+    # Buy signal conditions  
+    sma_condition = predictions[i] > test_data.iloc[i]["SMA9"] and predictions[i] > test_data.iloc[i]["SMA50"]  
+    rsi_condition = test_data.iloc[i]["RSI"] < 30  
+    macd_condition = test_data.iloc[i]["MACD"] > 0  
+    stochastic_condition = test_data.iloc[i]["Stochastic"] < 20 and test_data.iloc[i]["%K"] < 20  
+      
+    # Sell signal conditions  
+    sma_sell_condition = predictions[i] < test_data.iloc[i]["SMA9"] and predictions[i] < test_data.iloc[i]["SMA50"]  
+    rsi_sell_condition = test_data.iloc[i]["RSI"] > 70  
+    macd_sell_condition = test_data.iloc[i]["MACD"] < 0  
+    stochastic_sell_condition = test_data.iloc[i]["Stochastic"] > 80 and test_data.iloc[i]["%K"] > 80  
+  
+    if sma_condition and rsi_condition and macd_condition and stochastic_condition:  
+        buy_signals.append((test_data.index[i], test_data.iloc[i]["Close"]))  
+    elif sma_sell_condition and rsi_sell_condition and macd_sell_condition and stochastic_sell_condition:  
+        sell_signals.append((test_data.index[i], test_data.iloc[i]["Close"]))  
+  
+print("Buy signals:")  
+for signal in buy_signals:  
+    print(f"Time: {signal[0]}, Price: {signal[1]}")  
+  
+print("\nSell signals:")  
+for signal in sell_signals:  
+    print(f"Time: {signal[0]}, Price: {signal[1]}")  
 
 
