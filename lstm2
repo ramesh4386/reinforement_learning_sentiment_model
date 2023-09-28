@@ -1,0 +1,91 @@
+import pandas as pd  
+import numpy as np  
+import ta  
+from ta.utils import dropna  
+from ta.volatility import BollingerBands, AverageTrueRange  
+from ta.trend import SMAIndicator, EMAIndicator, MACD  
+from ta.momentum import RSIIndicator, StochasticOscillator  
+from ta.volume import OnBalanceVolumeIndicator, VolumePriceTrendIndicator  
+from sklearn.preprocessing import MinMaxScaler  
+from tensorflow.keras.models import Sequential  
+from tensorflow.keras.layers import Dense, LSTM  
+  
+# Load historical data  
+data = pd.read_csv("historical_data.csv")  
+data["Date"] = pd.to_datetime(data["Date"])  
+data.set_index("Date", inplace=True)  
+  
+# Preprocess the data  
+data = dropna(data)  
+  
+# Create additional indicators  
+data["SMA9"] = SMAIndicator(data["Close"], 9).sma_indicator()  
+data["SMA50"] = SMAIndicator(data["Close"], 50).sma_indicator()  
+data["EMA9"] = EMAIndicator(data["Close"], 9).ema_indicator()  
+data["EMA50"] = EMAIndicator(data["Close"], 50).ema_indicator()  
+data["RSI"] = RSIIndicator(data["Close"], 14).rsi()  
+data["Stochastic"] = StochasticOscillator(data["High"], data["Low"], data["Close"]).stoch()  
+data["%K"] = StochasticOscillator(data["High"], data["Low"], data["Close"]).stoch_signal()  
+indicator_bb = BollingerBands(data["Close"])  
+data["BBH"] = indicator_bb.bollinger_hband()  
+data["BBL"] = indicator_bb.bollinger_lband()  
+data["Volume"] = data["Volume"]  
+data["MACD"] = MACD(data["Close"]).macd()  
+data["ATR"] = AverageTrueRange(data["High"], data["Low"], data["Close"]).average_true_range()  
+data["OBV"] = OnBalanceVolumeIndicator(data["Close"], data["Volume"]).on_balance_volume()  
+data["VPT"] = VolumePriceTrendIndicator(data["Close"], data["Volume"]).volume_price_trend()  
+  
+# Drop rows with NaN values  
+data.dropna(inplace=True)  
+  
+# Split the data into training and test sets  
+train_data = data[:-1]  
+test_data = data[-1:]  
+  
+# Scale the features  
+scaler = MinMaxScaler(feature_range=(0, 1))  
+scaled_data = scaler.fit_transform(train_data)  
+  
+# Prepare the input data for LSTM  
+def create_dataset(dataset, window_size):  
+    X, Y = [], []  
+    for i in range(len(dataset) - window_size):  
+        X.append(dataset[i:(i + window_size), :])  
+        Y.append(dataset[i + window_size, 0])  
+    return np.array(X), np.array(Y)  
+  
+window_size = 120  
+X_train, y_train = create_dataset(scaled_data, window_size)  
+  
+# Build the LSTM model  
+model = Sequential()  
+model.add(LSTM(units=100, return_sequences=True, input_shape=(X_train.shape[1], X_train.shape[2])))  
+model.add(LSTM(units=100, return_sequences=True))  
+model.add(LSTM(units=100, return_sequences=False))  
+model.add(Dense(units=50))  
+model.add(Dense(units=1))  
+  
+# Train the model  
+model.compile(optimizer="adam", loss="mean_squared_error")  
+model.fit(X_train, y_train, epochs=20, batch_size=64)  
+  
+# Make predictions  
+test_data_scaled = scaler.transform(test_data.values.reshape(1, -1))  
+X_test, _ = create_dataset(np.concatenate((scaled_data[-window_size+1:], test_data_scaled), axis=0), window_size)  
+  
+predictions = model.predict(X_test)  
+  
+# Inverse transform the predictions  
+dummy_array = np.zeros((predictions.shape[0], test_data_scaled.shape[1]))  
+dummy_array[:, 0] = predictions[:, 0]  
+predictions_inverse_transformed = scaler.inverse_transform(dummy_array)[:, 0]  
+  
+# Generate buy and sell signals  
+if predictions_inverse_transformed[-1] > test_data.iloc[-1]["SMA9"] and predictions_inverse_transformed[-1] > test_data.iloc[-1]["SMA50"]:  
+    print("Buy signal at 12 PM on the last trading day")  
+    print(f"Time: {test_data.index[-1]}, Price: {test_data.iloc[-1]['Close']}")  
+elif predictions_inverse_transformed[-1] < test_data.iloc[-1]["SMA9"] and predictions_inverse_transformed[-1] < test_data.iloc[-1]["SMA50"]:  
+    print("Sell signal at 12 PM on the last trading day")  
+    print(f"Time: {test_data.index[-1]}, Price: {test_data.iloc[-1]['Close']}")  
+else:  
+    print("No clear signal at 12 PM on the last trading day")  
