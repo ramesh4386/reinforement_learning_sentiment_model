@@ -187,4 +187,15 @@ print("\nSell signals:")
 for signal in sell_signals:  
     print(f"Time: {signal[0]}, Price: {signal[1]}")  
 
+""" 
+In this updated version, we have added the following conditions:
+Buy signal conditions:
+RSI is below 30 (oversold)
+MACD is above 0 (positive momentum)
+Stochastic Oscillator and %K are below 20 (oversold)
+Sell signal conditions:
+RSI is above 70 (overbought)
+MACD is below 0 (negative momentum)
+Stochastic Oscillator and %K are above 80 (overbought)"""
+
 
