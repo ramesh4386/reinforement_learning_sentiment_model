@@ -101,5 +101,28 @@ for signal in buy_signals:
   
 print("\nSell signals:")  
 for signal in sell_signals:  
-    print(f"Time: {signal[0]}, Price: {signal[1]}")  
+    print(f"Time: {signal[0]}, Price: {signal[1]}") 
+
+##############################################
+import plotly.graph_objects as go  
+  
+# Create a Plotly figure  
+fig = go.Figure()  
+  
+# Add actual price trace  
+fig.add_trace(go.Scatter(x=test_data.index[window_size:], y=test_data['Close'][window_size:], mode='lines', name='Actual Price'))  
+  
+# Add predicted price trace  
+fig.add_trace(go.Scatter(x=test_data.index[window_size:], y=predictions, mode='lines', name='Predicted Price'))  
+  
+# Customize the layout  
+fig.update_layout(  
+    title='SYP/USD Actual vs Predicted Price',  
+    xaxis_title='Date',  
+    yaxis_title='Price',  
+)  
+  
+# Show the figure  
+fig.show()  
+
 
