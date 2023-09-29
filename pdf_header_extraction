@@ -229,5 +229,60 @@ def extract_text_and_properties_from_pdf(file_path, page_number):
 file_path = "path/to/your/pdf/document.pdf"  
 page_number = 0  # Extract information from the first page  
 extract_text_and_properties_from_pdf(file_path, page_number)  
+##############################################################
+
+import fitz  # PyMuPDF  
+  
+def is_bold(font_name):  
+    bold_substrings = ["bold", "black", "heavy", "bd"]  
+    return any(substring.lower() in font_name.lower() for substring in bold_substrings)  
+  
+def is_italic(font_name):  
+    return "italic" in font_name.lower() or "oblique" in font_name.lower()  
+  
+def is_all_caps(text):  
+    return text.isupper()  
+  
+def has_bigger_spaces(span, avg_size):  
+    return span['size'] > avg_size * 1.5  
+  
+def extract_headers_from_pdf(file_path, page_number):  
+    doc = fitz.open(file_path)  
+  
+    if page_number < 0 or page_number >= len(doc):  
+        raise ValueError("Invalid page number")  
+  
+    page = doc[page_number]  
+    blocks = page.get_text("dict")["blocks"]  
+  
+    headers = []  
+    total_size = 0  
+    span_count = 0  
+  
+    for block in blocks:  
+        if block["type"] == 0:  # Text block  
+            for line in block["lines"]:  
+                for span in line["spans"]:  
+                    total_size += span['size']  
+                    span_count += 1  
+  
+    avg_size = total_size / span_count  
+  
+    for block in blocks:  
+        if block["type"] == 0:  # Text block  
+            for line in block["lines"]:  
+                for span in line["spans"]:  
+                    if (is_bold(span['font']) or is_italic(span['font']) or is_all_caps(span['text'])) and has_bigger_spaces(span, avg_size):  
+                        headers.append(span['text'])  
+  
+    return headers  
+  
+file_path = "path/to/your/pdf/document.pdf"  
+page_number = 0  # Extract information from the first page  
+headers = extract_headers_from_pdf(file_path, page_number)  
+  
+print("Headers:")  
+for header in headers:  
+    print(header)  
 
 
