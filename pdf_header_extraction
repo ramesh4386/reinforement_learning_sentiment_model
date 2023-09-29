@@ -230,8 +230,8 @@ file_path = "path/to/your/pdf/document.pdf"
 page_number = 0  # Extract information from the first page  
 extract_text_and_properties_from_pdf(file_path, page_number)  
 ##############################################################
-
 import fitz  # PyMuPDF  
+import re  
   
 def is_bold(font_name):  
     bold_substrings = ["bold", "black", "heavy", "bd"]  
@@ -245,6 +245,10 @@ def is_all_caps(text):
   
 def has_bigger_spaces(span, avg_size):  
     return span['size'] > avg_size * 1.5  
+  
+def is_valid_header(header):  
+    header_pattern = re.compile(r'^[A-Z][a-zA-Z0-9 ]*$')  
+    return header_pattern.match(header)  
   
 def extract_headers_from_pdf(file_path, page_number):  
     doc = fitz.open(file_path)  
@@ -272,7 +276,7 @@ def extract_headers_from_pdf(file_path, page_number):
         if block["type"] == 0:  # Text block  
             for line in block["lines"]:  
                 for span in line["spans"]:  
-                    if (is_bold(span['font']) or is_italic(span['font']) or is_all_caps(span['text'])) and has_bigger_spaces(span, avg_size):  
+                    if (is_bold(span['font']) or is_italic(span['font']) or is_all_caps(span['text'])) and has_bigger_spaces(span, avg_size) and is_valid_header(span['text']):  
                         headers.append(span['text'])  
   
     return headers  
@@ -284,5 +288,4 @@ headers = extract_headers_from_pdf(file_path, page_number)
 print("Headers:")  
 for header in headers:  
     print(header)  
-
 
