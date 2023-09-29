@@ -199,5 +199,35 @@ def extract_text_info(file_path):
 file_path = "./path"  
 df = extract_text_info(file_path)  
 print(df)  
+###############################
+
+import fitz  # PyMuPDF  
+  
+def is_bold(font_name):  
+    bold_substrings = ["bold", "black", "heavy", "bd"]  
+    return any(substring.lower() in font_name.lower() for substring in bold_substrings)  
+  
+def extract_text_and_properties_from_pdf(file_path, page_number):  
+    doc = fitz.open(file_path)  
+      
+    if page_number < 0 or page_number >= len(doc):  
+        raise ValueError("Invalid page number")  
+  
+    page = doc[page_number]  
+    blocks = page.get_text("dict")["blocks"]  
+  
+    for block in blocks:  
+        if block["type"] == 0:  # Text block  
+            for line in block["lines"]:  
+                for span in line["spans"]:  
+                    print(f"Text: {span['text']}")  
+                    print(f"Fontname: {span['font']}")  
+                    print(f"Size: {span['size']}")  
+                    print(f"Bold: {is_bold(span['font'])}")  
+                    print("----")  
+  
+file_path = "path/to/your/pdf/document.pdf"  
+page_number = 0  # Extract information from the first page  
+extract_text_and_properties_from_pdf(file_path, page_number)  
 
 
