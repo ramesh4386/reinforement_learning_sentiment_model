@@ -288,4 +288,34 @@ headers = extract_headers_from_pdf(file_path, page_number)
 print("Headers:")  
 for header in headers:  
     print(header)  
+############################################
+
+import os  
+from azure.core.credentials import AzureKeyCredential  
+from azure.ai.formrecognizer import FormRecognizerClient  
+  
+# Set up the Form Recognizer client  
+key = "your_api_key"  # Replace with your "Key1" value  
+endpoint = "your_endpoint"  # Replace with your "Endpoint" value  
+client = FormRecognizerClient(endpoint, AzureKeyCredential(key))  
+  
+# Upload the PDF document  
+pdf_path = "path/to/your/document.pdf"  
+with open(pdf_path, "rb") as pdf:  
+    poller = client.begin_recognize_content(pdf)  
+  
+# Get the extracted content  
+content = poller.result()  
+  
+# Extract text, page numbers, and headings  
+for idx, page in enumerate(content):  
+    print(f"Page {idx + 1}:")  
+      
+    for line in page.lines:  
+        print(f"  Line: {line.content}")  
+        if line.appearance:  
+            if line.appearance.style_name == "heading" or line.appearance.font_weight == "bold":  
+                print(f"    Heading: {line.content}")  
+  
+    print()  
 
