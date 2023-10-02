@@ -292,12 +292,13 @@ for header in headers:
 
 import os  
 import requests  
+import fitz  
 from io import BytesIO  
 from azure.core.credentials import AzureKeyCredential  
 from azure.ai.formrecognizer import FormRecognizerClient  
   
 def is_heading(line, threshold=1.5):  
-    avg_font_size = sum([word.font_size for word in line.words]) / len(line.words)  
+    avg_font_size = sum([word[1] for word in line]) / len(line)  
     return avg_font_size > threshold * global_avg_font_size  
   
 # Set up the Form Recognizer client  
@@ -310,32 +311,44 @@ url = "https://www.learningcontainer.com/wp-content/uploads/2019/09/sample-pdf-f
 response = requests.get(url)  
 pdf_data = BytesIO(response.content)  
   
-# Analyze the PDF document  
+# Analyze the PDF document with Azure Form Recognizer  
 poller = client.begin_recognize_content(pdf_data)  
-  
-# Get the extracted content  
 content = poller.result()  
   
-# Calculate the global average font size  
+# Open the PDF document with PyMuPDF  
+doc = fitz.open("pdf", pdf_data.getbuffer())  
+  
+# Calculate the global average font size using PyMuPDF  
 total_font_size = 0  
 total_words = 0  
-for page in content:  
-    for line in page.lines:  
-        total_font_size += sum([word.font_size for word in line.words])  
-        total_words += len(line.words)  
+for page in doc:  
+    blocks = page.get_text("dict")["blocks"]  
+    for block in blocks:  
+        if block["type"] == 0:  # Text block  
+            for line in block["lines"]:  
+                total_font_size += sum([word[1] for word in line["spans"]])  
+                total_words += len(line["spans"])  
 global_avg_font_size = total_font_size / total_words  
   
-# Extract text, page numbers, and headings  
+# Extract text, page numbers, and headings using Azure Form Recognizer output  
 for idx, page in enumerate(content):  
     print(f"Page {idx + 1}:")  
   
     for line in page.lines:  
         print(f"  Line: {line.content}")  
   
-        # Check if the line is a heading based on font size  
-        if is_heading(line):  
+        # Check if the line is a heading based on font size using PyMuPDF  
+        line_text = line.content  
+        line_rect = fitz.Rect(line.bounding_box[0], line.bounding_box[1], line.bounding_box[4], line.bounding_box[5])  
+        words_with_size = []  
+          
+        for p in doc[idx].search_for(line_text):  
+            if line_rect.intersects(p):  
+                words = doc[idx].extract_words(p)  
+                words_with_size.extend([(w[4], w[1]) for w in words])  
+                break  
+  
+        if is_heading(words_with_size):  
             print(f"    Heading: {line.content}")  
   
     print()  
-
-
