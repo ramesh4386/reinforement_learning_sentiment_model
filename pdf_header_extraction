@@ -291,31 +291,51 @@ for header in headers:
 ############################################
 
 import os  
+import requests  
+from io import BytesIO  
 from azure.core.credentials import AzureKeyCredential  
 from azure.ai.formrecognizer import FormRecognizerClient  
+  
+def is_heading(line, threshold=1.5):  
+    avg_font_size = sum([word.font_size for word in line.words]) / len(line.words)  
+    return avg_font_size > threshold * global_avg_font_size  
   
 # Set up the Form Recognizer client  
 key = "your_api_key"  # Replace with your "Key1" value  
 endpoint = "your_endpoint"  # Replace with your "Endpoint" value  
 client = FormRecognizerClient(endpoint, AzureKeyCredential(key))  
   
-# Upload the PDF document  
-pdf_path = "path/to/your/document.pdf"  
-with open(pdf_path, "rb") as pdf:  
-    poller = client.begin_recognize_content(pdf)  
+# Download the PDF document from a URL  
+url = "https://www.learningcontainer.com/wp-content/uploads/2019/09/sample-pdf-file.pdf"  
+response = requests.get(url)  
+pdf_data = BytesIO(response.content)  
+  
+# Analyze the PDF document  
+poller = client.begin_recognize_content(pdf_data)  
   
 # Get the extracted content  
 content = poller.result()  
   
+# Calculate the global average font size  
+total_font_size = 0  
+total_words = 0  
+for page in content:  
+    for line in page.lines:  
+        total_font_size += sum([word.font_size for word in line.words])  
+        total_words += len(line.words)  
+global_avg_font_size = total_font_size / total_words  
+  
 # Extract text, page numbers, and headings  
 for idx, page in enumerate(content):  
     print(f"Page {idx + 1}:")  
-      
+  
     for line in page.lines:  
         print(f"  Line: {line.content}")  
-        if line.appearance:  
-            if line.appearance.style_name == "heading" or line.appearance.font_weight == "bold":  
-                print(f"    Heading: {line.content}")  
+  
+        # Check if the line is a heading based on font size  
+        if is_heading(line):  
+            print(f"    Heading: {line.content}")  
   
     print()  
+
 
