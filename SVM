@@ -43,3 +43,33 @@ recall = recall_score(y_test, y_pred)
 print("Accuracy:", accuracy)  
 print("Precision:", precision)  
 print("Recall:", recall)  
+
+###################sentiment######################
+#pip install transformers  
+
+from transformers import AutoTokenizer, AutoModelForSequenceClassification  
+import torch  
+  
+# Load the pre-trained FinBERT model and tokenizer  
+tokenizer = AutoTokenizer.from_pretrained("ProsusAI/finbert")  
+model = AutoModelForSequenceClassification.from_pretrained("ProsusAI/finbert")  
+  
+# Define a function to perform sentiment analysis  
+def get_sentiment(text):  
+    # Tokenize the input text  
+    inputs = tokenizer(text, return_tensors="pt")  
+  
+    # Get the model's output  
+    outputs = model(**inputs)  
+  
+    # Get the predicted sentiment  
+    sentiment = torch.argmax(outputs.logits, dim=1).item()  
+    sentiment_map = {0: "negative", 1: "neutral", 2: "positive"}  
+  
+    return sentiment_map[sentiment]  
+  
+# Example usage  
+text = "The company's stock price surged after the announcement of a new product."  
+sentiment = get_sentiment(text)  
+print(f"The sentiment of the given text is: {sentiment}")  
+
