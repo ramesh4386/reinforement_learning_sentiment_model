@@ -1,0 +1,23 @@
+def calculate_metrics(list_a, list_b):  
+    tp = len(set(list_a) & set(list_b))  
+    fp = len(set(list_a) - set(list_b))  
+    fn = len(set(list_b) - set(list_a))  
+      
+    match_percentage = (tp / (tp + fp + fn)) * 100  
+    precision = tp / (tp + fp)  
+    recall = tp / (tp + fn)  
+    accuracy = tp / (tp + fp + fn)  
+    f1_score = 2 * (precision * recall) / (precision + recall)  
+      
+    return match_percentage, precision, recall, accuracy, f1_score  
+  
+list_a = ["apple", "orange", "banana", "grape", "watermelon"]  
+list_b = ["apple", "banana", "cherry", "grape", "peach"]  
+  
+match_percentage, precision, recall, accuracy, f1_score = calculate_metrics(list_a, list_b)  
+  
+print("Match %:", match_percentage)  
+print("Precision:", precision)  
+print("Recall:", recall)  
+print("Accuracy:", accuracy)  
+print("F1 Score:", f1_score)  
