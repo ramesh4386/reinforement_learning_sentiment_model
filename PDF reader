@@ -64,34 +64,35 @@ with open('example.pdf', 'rb') as pdf_file:
 
 import re
 
-# Sample document text (you can replace this with your actual document text)
-document_text = """
-Introduction
-This is the introduction section.
-
-Section 1: Overview
-In this section, we provide an overview of the topic.
-
-CHAPTER II - LITERATURE REVIEW
-This chapter reviews relevant literature.
-
-Chapter 3: Methodology
-We describe the research methodology in this chapter.
-
-APPENDIX A - DATA SOURCES
-Information about data sources is included in this appendix.
-
-Conclusion
-Final thoughts and conclusions are presented here.
-"""
+# Sample document text as a list of lines
+document_text = [
+    "Introduction",
+    "This is the introduction section.",
+    "",
+    "Section 1: Overview",
+    "In this section, we provide an overview of the topic.",
+    "",
+    "CHAPTER II - LITERATURE REVIEW",
+    "This chapter reviews relevant literature.",
+    "",
+    "Chapter 3: Methodology",
+    "We describe the research methodology in this chapter.",
+    "",
+    "APPENDIX A - DATA SOURCES",
+    "Information about data sources is included in this appendix.",
+    "",
+    "Conclusion",
+    "Final thoughts and conclusions are presented here.",
+]
 
 # Define a regex pattern to identify potential header patterns, including all caps
 header_pattern = r'(?i)^(?:[A-Z][A-Za-z0-9\s\-]*:)|(?:[A-Z][A-Za-z\s\-]+[IVXLCDM]*\s*-\s*[A-Za-z0-9\s\-]+)|(?:[A-Z][A-Za-z\s\-]+[IVXLCDM]*\s*:\s*[A-Za-z0-9\s\-]+)|(?:[A-Z\s\-]+:)'
 
 # Use regular expression to find potential headers in the document
-potential_headers = re.findall(header_pattern, document_text)
+potential_headers = [line.strip() for line in document_text if re.match(header_pattern, line)]
 
 # Print the potential headers
 for header in potential_headers:
-    print(header.strip())
+    print(header)
+
 
