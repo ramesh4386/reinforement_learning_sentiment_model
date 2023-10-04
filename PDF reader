@@ -64,25 +64,34 @@ with open('example.pdf', 'rb') as pdf_file:
 
 import re
 
-# Sample list of strings
-text_list = [
-    "THIS IS ALL CAPS",
-    "Valid Text With Number1",
-    "Another String",
-    "Pattern123",
-    "Important Word2",
-    "ignore stopwords in this text",
-]
+# Sample document text (you can replace this with your actual document text)
+document_text = """
+Introduction
+This is the introduction section.
 
-# List of stopwords (words to ignore)
-stopwords = ["this", "in", "is", "the", "and", "with"]
+Section 1: Overview
+In this section, we provide an overview of the topic.
 
-# Define a regex pattern to match strings based on your criteria
-pattern = r'(?i)^(?!.*(?:\b(?:' + '|'.join(stopwords) + r')\b))([A-Z][a-zA-Z0-9]*|[A-Z0-9]*[0-9][A-Z0-9]*)$'
+CHAPTER II - LITERATURE REVIEW
+This chapter reviews relevant literature.
 
-# Use list comprehension to filter the list
-filtered_text_list = [text for text in text_list if re.match(pattern, text)]
+Chapter 3: Methodology
+We describe the research methodology in this chapter.
 
-# Print the filtered list
-for text in filtered_text_list:
-    print(text)
+APPENDIX A - DATA SOURCES
+Information about data sources is included in this appendix.
+
+Conclusion
+Final thoughts and conclusions are presented here.
+"""
+
+# Define a regex pattern to identify potential header patterns, including all caps
+header_pattern = r'(?i)^(?:[A-Z][A-Za-z0-9\s\-]*:)|(?:[A-Z][A-Za-z\s\-]+[IVXLCDM]*\s*-\s*[A-Za-z0-9\s\-]+)|(?:[A-Z][A-Za-z\s\-]+[IVXLCDM]*\s*:\s*[A-Za-z0-9\s\-]+)|(?:[A-Z\s\-]+:)'
+
+# Use regular expression to find potential headers in the document
+potential_headers = re.findall(header_pattern, document_text)
+
+# Print the potential headers
+for header in potential_headers:
+    print(header.strip())
+
