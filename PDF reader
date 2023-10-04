@@ -60,3 +60,29 @@ with open('example.pdf', 'rb') as pdf_file:
     # print the resulting DataFrame  
     print(df)  
 
+#####################################################
+
+import re
+
+# Sample list of strings
+text_list = [
+    "THIS IS ALL CAPS",
+    "Valid Text With Number1",
+    "Another String",
+    "Pattern123",
+    "Important Word2",
+    "ignore stopwords in this text",
+]
+
+# List of stopwords (words to ignore)
+stopwords = ["this", "in", "is", "the", "and", "with"]
+
+# Define a regex pattern to match strings based on your criteria
+pattern = r'(?i)^(?!.*(?:\b(?:' + '|'.join(stopwords) + r')\b))([A-Z][a-zA-Z0-9]*|[A-Z0-9]*[0-9][A-Z0-9]*)$'
+
+# Use list comprehension to filter the list
+filtered_text_list = [text for text in text_list if re.match(pattern, text)]
+
+# Print the filtered list
+for text in filtered_text_list:
+    print(text)
