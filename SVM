@@ -104,3 +104,44 @@ predicted_sentiment = "Positive" if logits[0][0] > logits[0][1] else "Negative"
 
 # Print the predicted sentiment
 print(f"Predicted Sentiment: {predicted_sentiment}")
+
+###############################################
+
+import pandas as pd
+import numpy as np
+
+# Load stock market data
+data = pd.read_csv("stock_data.csv")
+
+# Assuming your data has a datetime column "Timestamp," set it as the index
+data["Timestamp"] = pd.to_datetime(data["Timestamp"])
+data.set_index("Timestamp", inplace=True)
+
+# Calculate the features S4 to S10 for each trading day
+data["S4"] = data.groupby(pd.Grouper(freq="D")).apply(lambda x: x["OpeningPrice"].iloc[-1])
+data["S5"] = data.groupby(pd.Grouper(freq="D")).apply(lambda x: x["ClosingPrice"].iloc[-1])
+data["S6"] = data.groupby(pd.Grouper(freq="D")).apply(lambda x: x["HighestPrice"].max())
+data["S7"] = data.groupby(pd.Grouper(freq="D")).apply(lambda x: x["LowestPrice"].min())
+data["S8"] = data.groupby(pd.Grouper(freq="D")).apply(lambda x: x["Volume"].sum())
+
+# Calculate S9: The intraday percentage change for each 15-minute interval
+data["S9"] = ((data["ClosingPrice"] - data["OpeningPrice"]) / data["OpeningPrice"]) * 100
+
+# Calculate S10: The total transaction amount for each 15-minute interval
+data["S10"] = data["ClosingPrice"] * data["Volume"]
+
+# Preprocess the data and create binary labels for price trends
+data["PriceTrend"] = np.where(data["PriceAt12"] >= data["S4"], 1, 0)
+
+# Drop rows with missing values resulting from the calculations
+data.dropna(inplace=True)
+
+# Select the relevant features for modeling
+selected_features = ["S4", "S5", "S6", "S7", "S8", "S9", "S10"]
+
+# Split the data into training and test sets
+X = data[selected_features]
+y = data["PriceTrend"]
+
+# Now you can proceed with model training and evaluation as previously shown
+
