@@ -99,11 +99,8 @@ with torch.no_grad():
     outputs = model(**inputs)
     logits = outputs.logits
 
-# Define sentiment labels
-sentiment_labels = ["Negative", "Positive"]
-
-# Determine the predicted sentiment label (positive or negative)
-predicted_sentiment = sentiment_labels[logits.argmax()]
+# Map logits to sentiment labels based on the model's output structure
+predicted_sentiment = "Positive" if logits[0][0] > logits[0][1] else "Negative"
 
 # Print the predicted sentiment
 print(f"Predicted Sentiment: {predicted_sentiment}")
