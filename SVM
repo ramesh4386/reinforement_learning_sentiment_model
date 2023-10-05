@@ -80,8 +80,8 @@ print(f"The sentiment of the given text is: {sentiment}")
 import torch
 from transformers import BertTokenizer, BertForSequenceClassification
 
-# Load the FinBERT model and tokenizer
-model_name = "yiyanghkust/finbert-tone"
+# Load the ProsusAI/finbert model and tokenizer
+model_name = "ProsusAI/finbert"
 tokenizer = BertTokenizer.from_pretrained(model_name)
 model = BertForSequenceClassification.from_pretrained(model_name)
 
@@ -99,15 +99,11 @@ with torch.no_grad():
     outputs = model(**inputs)
     logits = outputs.logits
 
-predicted_labels = logits.argmax(dim=1)
-
 # Define sentiment labels
-sentiment_labels = ["Negative", "Neutral", "Positive"]
+sentiment_labels = ["Negative", "Positive"]
 
-# Print the predicted sentiment for each text
-for i, text in enumerate(texts):
-    predicted_sentiment = sentiment_labels[predicted_labels[i]]
-    print(f"Text: {text}")
-    print(f"Predicted Sentiment: {predicted_sentiment}")
-    print()
+# Determine the predicted sentiment label (positive or negative)
+predicted_sentiment = sentiment_labels[logits.argmax()]
 
+# Print the predicted sentiment
+print(f"Predicted Sentiment: {predicted_sentiment}")
