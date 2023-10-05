@@ -1,0 +1,155 @@
+import pandas as pd
+import numpy as np
+import math
+
+def calculate_two_class_sentiment_index(M_post, M_neg):
+    return math.log(1 + M_post + M_neg)
+
+def calculate_sentiment_indexes(df):
+    # Initialize a list to store sentiment indexes
+    two_class_sentiment_indexes = []
+
+    # Iterate over rows of the DataFrame
+    for index, row in df.iterrows():
+        M_post = row["Positive"]  # Replace "Positive" with the actual column name for positive messages
+        M_neg = row["Negative"]  # Replace "Negative" with the actual column name for negative messages
+        
+        # Calculate the two-class sentiment index
+        two_class_sentiment = calculate_two_class_sentiment_index(M_post, M_neg)
+        
+        # Append the calculated sentiment index to the list
+        two_class_sentiment_indexes.append(two_class_sentiment)
+    
+    # Add the calculated sentiment index as a new column to the DataFrame
+    df["TwoClassSentimentIndex"] = two_class_sentiment_indexes
+    
+    return df
+
+# Create a sample DataFrame with sentiment labels
+data = pd.DataFrame({
+    "Positive": np.random.randint(0, 11, 10),  # Sample positive message counts
+    "Negative": np.random.randint(0, 11, 10)   # Sample negative message counts
+})
+
+# Calculate sentiment indexes for the sample DataFrame
+result_df = calculate_sentiment_indexes(data)
+
+# Print the result DataFrame with sentiment indexes
+print(result_df)
+
+#########################################
+
+import pandas as pd
+import numpy as np
+import math
+
+def calculate_two_class_sentiment_index(M_post, M_neg):
+    return math.log(1 + M_post + M_neg)
+
+def calculate_three_class_sentiment_index(M_post, M_neut, M_neg):
+    return (M_post - M_neg) / (M_post + M_neut + M_neg) if (M_post + M_neut + M_neg) != 0 else 0.0
+
+def calculate_sentiment_indexes(df):
+    # Initialize lists to store sentiment indexes
+    two_class_sentiment_indexes = []
+    three_class_sentiment_indexes = []
+
+    # Iterate over rows of the DataFrame
+    for index, row in df.iterrows():
+        M_post = row["Positive"]  # Replace "Positive" with the actual column name for positive messages
+        M_neg = row["Negative"]  # Replace "Negative" with the actual column name for negative messages
+        M_neut = row["Neutral"]  # Replace "Neutral" with the actual column name for neutral messages
+        
+        # Calculate the two-class sentiment index
+        two_class_sentiment = calculate_two_class_sentiment_index(M_post, M_neg)
+        
+        # Calculate the three-class sentiment index
+        three_class_sentiment = calculate_three_class_sentiment_index(M_post, M_neut, M_neg)
+        
+        # Append the calculated sentiment indexes to the lists
+        two_class_sentiment_indexes.append(two_class_sentiment)
+        three_class_sentiment_indexes.append(three_class_sentiment)
+    
+    # Add the calculated sentiment indexes as new columns to the DataFrame
+    df["TwoClassSentimentIndex"] = two_class_sentiment_indexes
+    df["ThreeClassSentimentIndex"] = three_class_sentiment_indexes
+    
+    return df
+
+# Create a sample DataFrame with sentiment labels
+data = pd.DataFrame({
+    "Positive": np.random.randint(0, 11, 10),  # Sample positive message counts
+    "Negative": np.random.randint(0, 11, 10),  # Sample negative message counts
+    "Neutral": np.random.randint(0, 11, 10)    # Sample neutral message counts
+})
+
+# Calculate sentiment indexes for the sample DataFrame
+result_df = calculate_sentiment_indexes(data)
+
+# Print the result DataFrame with sentiment indexes
+print(result_df)
+##########################################################
+
+import pandas as pd
+import numpy as np
+import torch
+from transformers import BertTokenizer, BertForSequenceClassification
+import math
+
+# Load the pre-trained BERT model and tokenizer
+model_name = "bert-base-uncased"
+tokenizer = BertTokenizer.from_pretrained(model_name)
+model = BertForSequenceClassification.from_pretrained(model_name)
+
+# Create a function to predict sentiment scores
+def predict_sentiment(text):
+    inputs = tokenizer(text, return_tensors="pt", padding=True, truncation=True, max_length=128)
+    outputs = model(**inputs)
+    logits = outputs.logits
+    probabilities = torch.softmax(logits, dim=1)
+    return probabilities[:, 1].item()  # Use the probability of the positive class (positive sentiment)
+
+def calculate_two_class_sentiment_index(M_post, M_neg):
+    return math.log(1 + M_post + M_neg)
+
+def calculate_sentiment_indexes(df):
+    # Calculate sentiment scores and replace "Positive" and "Negative" columns
+    df["Positive"] = df["Text"].apply(predict_sentiment)
+    df["Negative"] = 1 - df["Positive"]  # Calculate negative sentiment scores as 1 - positive scores
+
+    # Initialize a list to store sentiment indexes
+    two_class_sentiment_indexes = []
+
+    # Iterate over rows of the DataFrame
+    for index, row in df.iterrows():
+        M_post = row["Positive"]
+        M_neg = row["Negative"]
+        
+        # Calculate the two-class sentiment index
+        two_class_sentiment = calculate_two_class_sentiment_index(M_post, M_neg)
+        
+        # Append the calculated sentiment index to the list
+        two_class_sentiment_indexes.append(two_class_sentiment)
+    
+    # Add the calculated sentiment index as a new column to the DataFrame
+    df["TwoClassSentimentIndex"] = two_class_sentiment_indexes
+    
+    return df
+
+# Create a sample DataFrame with text data
+data = pd.DataFrame({
+    "Text": [
+        "This is a positive message.",
+        "I have a neutral opinion.",
+        "Negative sentiment here.",
+        "Another positive example.",
+        "Mixed feelings about this.",
+        "More negativity in this text."
+    ]
+})
+
+# Calculate sentiment indexes for the sample DataFrame
+result_df = calculate_sentiment_indexes(data)
+
+# Print the result DataFrame with sentiment indexes
+print(result_df)
