@@ -73,3 +73,41 @@ text = "The company's stock price surged after the announcement of a new product
 sentiment = get_sentiment(text)  
 print(f"The sentiment of the given text is: {sentiment}")  
 
+################################################################
+
+#!pip install transformers torch
+
+import torch
+from transformers import BertTokenizer, BertForSequenceClassification
+
+# Load the FinBERT model and tokenizer
+model_name = "yiyanghkust/finbert-tone"
+tokenizer = BertTokenizer.from_pretrained(model_name)
+model = BertForSequenceClassification.from_pretrained(model_name)
+
+# Define a list of financial text data
+texts = [
+    "The company reported strong earnings for the quarter, which drove the stock price higher.",
+    "The economic downturn has negatively impacted the financial markets.",
+]
+
+# Tokenize and preprocess the data
+inputs = tokenizer(texts, padding=True, truncation=True, return_tensors="pt", max_length=512)
+
+# Perform sentiment analysis
+with torch.no_grad():
+    outputs = model(**inputs)
+    logits = outputs.logits
+
+predicted_labels = logits.argmax(dim=1)
+
+# Define sentiment labels
+sentiment_labels = ["Negative", "Neutral", "Positive"]
+
+# Print the predicted sentiment for each text
+for i, text in enumerate(texts):
+    predicted_sentiment = sentiment_labels[predicted_labels[i]]
+    print(f"Text: {text}")
+    print(f"Predicted Sentiment: {predicted_sentiment}")
+    print()
+
