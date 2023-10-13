@@ -31,3 +31,39 @@ df = pd.DataFrame(data)
   
 # Display the DataFrame  
 print(df)  
+#############################
+
+from azure.core.credentials import AzureKeyCredential  
+from azure.ai.formrecognizer import FormRecognizerClient  
+import pandas as pd  
+  
+# Set your API key and endpoint URL  
+api_key = "your_form_recognizer_api_key"  
+endpoint = "your_form_recognizer_endpoint"  
+  
+# Initialize the FormRecognizerClient  
+client = FormRecognizerClient(endpoint, AzureKeyCredential(api_key))  
+  
+# Provide the path to your PDF file  
+pdf_file = "path/to/your/pdf_file.pdf"  
+  
+# Read the PDF file as bytes  
+with open(pdf_file, "rb") as f:  
+    file_bytes = f.read()  
+  
+# Analyze the document layout  
+poller = client.begin_recognize_content(file_bytes)  
+result = poller.result()  
+  
+# Extract text and page numbers and store them in a list  
+data = []  
+for page in result:  
+    if page.lines:  
+        paragraph = "\n".join(line.text for line in page.lines)  
+        data.append({"page_number": page.page_number, "paragraph": paragraph})  
+  
+# Convert the list into a DataFrame  
+df = pd.DataFrame(data)  
+  
+# Display the DataFrame  
+print(df)  
