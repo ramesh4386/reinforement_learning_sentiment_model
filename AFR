@@ -64,6 +64,79 @@ for page in result:
   
 # Convert the list into a DataFrame  
 df = pd.DataFrame(data)  
+
+#########################################
+
+import openai  
+import PyPDF2  
+import re  
+  
+# Set your OpenAI API key  
+openai.api_key = "your_openai_api_key_here"  
+  
+# Function to extract text from a PDF file  
+def extract_text_from_pdf(file_path):  
+    with open(file_path, "rb") as file:  
+        reader = PyPDF2.PdfFileReader(file)  
+        text = ""  
+        for i in range(reader.numPages):  
+            text += reader.getPage(i).extractText()  
+    return text  
+  
+# Function to divide the text into chunks  
+def split_text_into_chunks(text, token_limit):  
+    words = text.split()  
+    chunks = []  
+    current_chunk = []  
+  
+    for word in words:  
+        if len(" ".join(current_chunk)) + len(word) < token_limit:  
+            current_chunk.append(word)  
+        else:  
+            chunks.append(" ".join(current_chunk))  
+            current_chunk = [word]  
+      
+    if current_chunk:  
+        chunks.append(" ".join(current_chunk))  
+      
+    return chunks  
+  
+# Function to generate a summary for each chunk  
+def generate_summaries(chunks):  
+    summaries = []  
+    for chunk in chunks:  
+        response = openai.Completion.create(  
+            engine="text-davinci-002",  # Replace this with GPT-4 engine when available  
+            prompt=f"Please summarize the following text:\n{chunk}",  
+            max_tokens=100,  
+            n=1,  
+            stop=None,  
+            temperature=0.5  
+        )  
+        summary = response.choices[0].text.strip()  
+        summaries.append(summary)  
+      
+    return summaries  
+  
+# Main function  
+def main(file_path):  
+    text = extract_text_from_pdf(file_path)  
+    token_limit = 2048  # Adjust this based on GPT-4's token limit  
+    chunks = split_text_into_chunks(text, token_limit)  
+    summaries = generate_summaries(chunks)  
+      
+    print("Summaries for each chunk:")  
+    for i, summary in enumerate(summaries):  
+        print(f"Chunk {i+1}: {summary}")  
+      
+    print("\nFinal summary:")  
+    final_summary = " ".join(summaries)  
+    print(final_summary)  
+  
+if __name__ == "__main__":  
+    file_path = "path_to_your_pdf_file.pdf"  
+    main(file_path)  
+
   
 # Display the DataFrame  
 print(df)  
