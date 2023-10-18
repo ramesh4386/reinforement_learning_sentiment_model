@@ -140,3 +140,20 @@ if __name__ == "__main__":
   
 # Display the DataFrame  
 print(df)  
+
+##############################
+
+def summarize(document_prompt, user_prompt, system_prompt, model, temp=.7, tokens=750):
+  response = openai.ChatCompletion.create(
+          model=model,
+          messages=[{"role": "system", "content": system_prompt},
+                    {"role": "user", "content": document_prompt},
+                    {"role": "user", "content": user_prompt}],
+          temperature=temp, 
+          max_tokens=tokens,
+          top_p=1,
+          frequency_penalty=0,
+          presence_penalty=0
+        )
+  output_summary = response["choices"][0]["message"]["content"]
+  return output_summary
