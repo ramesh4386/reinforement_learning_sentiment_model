@@ -157,3 +157,29 @@ def summarize(document_prompt, user_prompt, system_prompt, model, temp=.7, token
         )
   output_summary = response["choices"][0]["message"]["content"]
   return output_summary
+
+############################################
+
+import openai  
+  
+# Replace `your_api_key` with your OpenAI API key  
+openai.api_key = "your_api_key"  
+  
+def generate_response(prompt):  
+    response = openai.Completion.create(  
+        engine="text-davinci-002",  
+        prompt=prompt,  
+        max_tokens=100,  
+        n=1,  
+        stop=None,  
+        temperature=0.5,  
+    )  
+    return response.choices[0].text.strip()  
+  
+text_to_classify = "There are various programming languages like Python, Java, and JavaScript."  
+  
+prompt = f"Classify the following text as either 'topic', 'paragraph', or 'others':\n\n{text_to_classify}\n\nClassification: "  
+  
+classification = generate_response(prompt)  
+print(f"Text: {text_to_classify}\nClassification: {classification}")  
+
