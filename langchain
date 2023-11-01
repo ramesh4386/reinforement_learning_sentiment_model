@@ -1,0 +1,88 @@
+from functools import partial
+import re
+from langchain.callbacks.manager import CallbackManagerForChainRun
+from langchain.chains.combine_documents import collapse_docs, split_list_of_docs
+from langchain.chat_models import ChatAnthropic
+from langchain.prompts import PromptTemplate
+from langchain.schema import Document, RunnablePassthrough, RunnableParallel, StrOutputParser
+from langchain.schema.prompt_template import format_document
+
+llm = ChatAnthropic()
+
+# Define the document prompt and format function
+document_prompt = PromptTemplate.from_template("{page_content}")
+partial_format_document = partial(format_document, prompt=document_prompt)
+
+# Define the chain for summarizing a document
+map_chain = (
+    {"context": partial_format_document}
+    | PromptTemplate.from_template("Summarize this content:\n\n{context}")
+    | llm
+    | StrOutputParser()
+)
+
+# Define the chain for keeping original Document metadata
+map_as_doc_chain = (
+    RunnableParallel({"doc": RunnablePassthrough(), "content": map_chain})
+    | (lambda x: Document(page_content=x["content"], metadata=x["doc"].metadata))
+).with_config(run_name="Summarize (return doc)")
+
+# Define the chain for collapsing subsets of documents
+def format_docs(docs):
+    return "\n\n".join(partial_format_document(doc) for doc in docs)
+
+collapse_chain = (
+    {"context": format_docs}
+    | PromptTemplate.from_template("Collapse this content:\n\n{context}")
+    | llm
+    | StrOutputParser()
+)
+
+def get_num_tokens(docs):
+    return llm.get_num_tokens(format_docs(docs))
+
+def collapse(
+    docs,
+    config,
+    token_max=1500,
+):
+    collapse_ct = 1
+    while get_num_tokens(docs) > token_max:
+        config["run_name"] = f"Collapse {collapse_ct}"
+        invoke = partial(collapse_chain.invoke, config=config)
+        split_docs = split_list_of_docs(docs, get_num_tokens, token_max)
+        docs = [collapse_docs(_docs, invoke) for _docs in split_docs]
+        collapse_ct += 1
+    return docs
+
+# Define the chain for combining document summaries
+reduce_chain = (
+    {"context": format_docs}
+    | PromptTemplate.from_template("Combine these summaries:\n\n{context}")
+    | llm
+    | StrOutputParser()
+).with_config(run_name="Reduce")
+
+# Define the final MapReduce chain
+map_reduce = (map_as_doc_chain.map() | collapse | reduce_chain).with_config(
+    run_name="Map reduce"
+)
+
+# Define the text to be summarized
+text = """Your long text goes here..."""
+
+# Split the text into smaller documents
+docs = [
+    Document(
+        page_content=split,
+        metadata={"source": "source_info_here"},
+    )
+    for split in re.split(r'(?<=[.!?])\s+', text)
+]
+
+# Invoke the MapReduce chain
+results = map_reduce.invoke(docs, config={"max_concurrency": 5})
+
+# Print the generated summary
+summary = results[0]["context"]
+print(summary)
