@@ -23,3 +23,35 @@ text = "This is a sample text to demonstrate chunking."
 chunk_size = 10
 chunks = split_text_into_chunks(text, chunk_size)
 print(chunks)
+##################################################
+
+import re
+
+def split_text_into_chunks(text_list, chunk_size=100, overlap=10):
+    chunks = []
+    for text in text_list:
+        words = text.split()  # Split text into words
+        start = 0
+        end = chunk_size
+        while start < len(words):
+            chunk = " ".join(words[start:end])
+            chunks.append(chunk)
+            start = end - overlap
+            end = start + chunk_size
+    return chunks
+
+# Example list of text
+text_list = [
+    "This is an example of a text that we want to split into chunks.",
+    "Each chunk should contain about 100 words with a 10-word overlap.",
+    "We will process this text list to create the chunks.",
+    "This is another text entry.",
+]
+
+# Split text into chunks
+chunks = split_text_into_chunks(text_list)
+
+# Print the resulting text chunks
+for i, chunk in enumerate(chunks):
+    print(f"Chunk {i + 1}:\n{chunk}\n")
+
