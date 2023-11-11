@@ -24,3 +24,33 @@ def summarize_text(text: str) -> str:
         summary += f"**Topic: {topic}**\n{summary_chunk}\n\n"
 
     return summary
+
+##########################################
+
+from langchain.chat_models import ChatOpenAI
+from langchain.chains import loadSummarizationChain
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+
+def summarize_text(text: str) -> str:
+    # Split the text into chunks of 1000 tokens each
+    splitter = RecursiveCharacterTextSplitter(max_tokens=1000)
+    chunks = splitter.split(text)
+
+    # Load the summarization chain
+    chain = loadSummarizationChain()
+
+    # Summarize each chunk and predict its topic
+    summary = ""
+    for chunk in chunks:
+        # Generate the summary
+        summary_chunk = chain.summarize(chunk)
+
+        # Predict the topic of the summary chunk
+        llm = ChatOpenAI(temperature=0, model_name="text-davinci-002")
+        topic = llm.predict(summary_chunk)
+
+        # Add the summary chunk and its topic to the final summary
+        summary += f"**Topic: {topic}**\n{summary_chunk}\n\n"
+
+    return summary
+
