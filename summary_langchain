@@ -53,4 +53,45 @@ def summarize_text(text: str) -> str:
         summary += f"**Topic: {topic}**\n{summary_chunk}\n\n"
 
     return summary
+#################################################
+
+import openai  
+from langchain import SequentialChain  
+  
+openai.api_key = "INSERT YOUR API KEY HERE"  
+  
+# Define the prompts  
+classify_prompt = "Classify the following text into header or not:"  
+classify_choices = ["Header", "Not Header"]  
+  
+summarize_prompt = "Summarize the following text:"  
+  
+# Define the chain  
+chain = SequentialChain(  
+    [  
+        (classify_prompt, classify_choices),  
+        (summarize_prompt, None)  
+    ]  
+)  
+  
+# Define the functions for each prompt  
+def classify_text(text):  
+    response = chain.run(text, prompt_index=0)  
+    header = response.choices[0]  
+    return header == "Header"  
+  
+def summarize_text(text):  
+    response = chain.run(text, prompt_index=1)  
+    summary = response.text.strip()  
+    return summary  
+  
+# Example usage  
+text = "The Importance of Sleep for Your Health"  
+is_header = classify_text(text)  
+if is_header:  
+    summary = summarize_text(text)  
+    print(summary)  
+else:  
+    print("The text is not a header.")  
+
 
