@@ -1,0 +1,88 @@
+from langchain.llms import AutoModelForSeq2SeqLM
+from sentence_transformers import SentenceTransformer, util
+from sklearn.cluster import KMeans
+
+class Summarizer:
+  def __init__(self, model_name="allenai/bart-base", k=10):
+    """
+    Initializes the Summarizer class.
+
+    Args:
+      model_name (str, optional): Name of the language model for summarization. Defaults to "allenai/bart-base".
+      k (int, optional): Number of clusters for KMeans. Defaults to 10.
+    """
+    self.model = AutoModelForSeq2SeqLM.from_pretrained(model_name)
+    self.tokenizer = self.model.tokenizer
+    self.embedding_model = SentenceTransformer('all-mpnet-base-v2')
+    self.kmeans = KMeans(n_clusters=k)
+    self.langchain_summarizer = None  # Placeholder for LangChain model
+
+  def set_langchain_summarizer(self, summarizer):
+    """
+    Sets the LangChain summarization model.
+
+    Args:
+      summarizer (langchain.llms.AutoModelForSeq2SeqLM): The LangChain summarization model.
+    """
+    self.langchain_summarizer = summarizer
+
+  def summarize(self, texts):
+    """
+    Summarizes a list of texts.
+
+    Args:
+      texts (list): List of strings to be summarized.
+
+    Returns:
+      list: List of summaries, one for each input text.
+    """
+    if not texts:
+      return []  # Handle empty input gracefully
+
+    try:
+      embeddings = self.get_embeddings(texts)
+      clusters = self.kmeans.fit_predict(embeddings)
+      summaries = []
+      for i, text in enumerate(texts):
+        cluster_texts = [texts[j] for j, c in enumerate(clusters) if c == clusters[i]]
+        summary = self.summarize_cluster(cluster_texts)
+        summaries.append(summary)
+      return summaries
+    except Exception as e:
+      print(f"Error during summarization: {e}")
+      return [f"Error summarizing text {i+1}" for i in range(len(texts))]  # Return error messages for each text
+
+  def get_embeddings(self, texts):
+    """
+    Gets sentence embeddings for the input texts.
+
+    Args:
+      texts (list): List of strings.
+
+    Returns:
+      list: List of numpy arrays representing sentence embeddings.
+    """
+    encoded_texts = self.tokenizer(texts, return_tensors='pt')
+    model_output = self.model(**encoded_texts)
+    last_hidden_state = model_output.last_hidden_state[:, 0, :]  # Get CLS token output
+    embeddings = self.embedding_model.encode(last_hidden_state.detach().cpu().numpy())
+    return embeddings
+
+  def summarize_cluster(self, cluster_texts):
+    """
+    Summarizes a group of texts using the LangChain summarization model.
+
+    **Requires a LangChain summarization model to be set using set_langchain_summarizer**
+
+    Args:
+      cluster_texts (list): List of strings belonging to the same cluster.
+
+    Returns:
+      str: Summary of the cluster texts.
+    """
+    if not self.langchain_summarizer:
+      raise ValueError("LangChain summarization model not set. Please use set_langchain_summarizer to provide a model.")
+
+    # Replace this with your LangChain map-reduce model for summarization
+    summary = self.langchain_summarizer.summarize(cluster_texts)  # Use LangChain model for summarization
+    return summary
